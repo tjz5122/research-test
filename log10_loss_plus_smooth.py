@@ -259,16 +259,19 @@ class SSM(SSM_Optimizer):
             
             if self.state['mode'] == 'log10 loss plus smooth':
                 self.state['smoothing'] = xk1.dot(gk).item() - (0.5 * self.state['lr']) * ((1 + self.state['momemtum'])/(1 - self.state['momemtum'])) * (dk.dot(dk).item())
-                self.state['stats_val'] =  np.log10(self.state['loss']) + self.state['smoothing']
+                self.state['loss'] = np.log10(self.state['loss'])
+                self.state['stats_val'] =  self.state['loss'] + self.state['smoothing']
             
         
             if self.state['mode'] == 'In loss plus smooth':
                 self.state['smoothing'] = xk1.dot(gk).item() - (0.5 * self.state['lr']) * ((1 + self.state['momemtum'])/(1 - self.state['momemtum'])) * (dk.dot(dk).item())
-                self.state['stats_val'] =  np.log(self.state['loss']) + self.state['smoothing']
+                self.state['loss'] = np.log(self.state['loss'])
+                self.state['stats_val'] = self.state['loss']  + self.state['smoothing']
             
             if self.state['mode'] == 'sqrt loss plus smooth':
                 self.state['smoothing'] = xk1.dot(gk).item() - (0.5 * self.state['lr']) * ((1 + self.state['momemtum'])/(1 - self.state['momemtum'])) * (dk.dot(dk).item())
-                self.state['stats_val'] =  self.state['loss']**0.5 + self.state['smoothing']
+                self.state['loss'] = self.state['loss']**0.5
+                self.state['stats_val'] =  self.state['loss'] + self.state['smoothing']
             
             if self.state['mode'] == 'sasa_plus':
                 self.state['stats_x1d'] = xk1.dot(dk).item()
@@ -549,12 +552,12 @@ end = timer()
 print("total computational time is", end - start)
 
 file = open("log10_loss_plus_smooth.txt","x")
-file.write("train_accuracy_list = {}\n".format(str(train_accuracy_list)))
-file.write("test_accuracy_list = {}\n".format(str(test_accuracy_list)))
-file.write("lr_list = {}\n".format(str(lr_list)))
-file.write("statistic_list = {}\n".format(str(statistic_list)))
-file.write("key_list = {}\n".format(str(key_list)))
-file.write("avg_loss_list = {}\n".format(str(avg_loss_list)))
-file.write("total_time = {}\n".format(str(end - start)))
+file.write("train_accuracy_list_log10 = {}\n".format(str(train_accuracy_list)))
+file.write("test_accuracy_list_log10 = {}\n".format(str(test_accuracy_list)))
+file.write("lr_list_log10 = {}\n".format(str(lr_list)))
+file.write("statistic_list_log10 = {}\n".format(str(statistic_list)))
+file.write("key_list_log10 = {}\n".format("array(" + str(key_list) + ")"))
+file.write("avg_loss_list_log10 = {}\n".format(str(avg_loss_list)))
+file.write("total_time_log10 = {}\n".format(str(end - start)))
 file.close()
 print("complete")
