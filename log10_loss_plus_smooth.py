@@ -548,7 +548,7 @@ for epoch in range(num_epochs):
 end = timer()
 print("total computational time is", end - start)
 
-file = open("SSM_2222Mgnet256_minstat100_tol001_mb_smooth.txt","x")
+file = open("log10_loss_plus_smooth.txt","x")
 file.write("train_accuracy_list = {}\n".format(str(train_accuracy_list)))
 file.write("test_accuracy_list = {}\n".format(str(test_accuracy_list)))
 file.write("lr_list = {}\n".format(str(lr_list)))
