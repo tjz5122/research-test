@@ -557,7 +557,7 @@ for epoch in range(num_epochs):
 end = timer()
 print("total computational time is", end - start)
 
-file = open("In_loss_plus_smooth.txt","x")
+file = open("composite_ln.txt","x")
 file.write("train_accuracy_list_ln = {}\n".format(str(train_accuracy_list)))
 file.write("test_accuracy_list_ln = {}\n".format(str(test_accuracy_list)))
 file.write("lr_list_ln = {}\n".format(str(lr_list)))
