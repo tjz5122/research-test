@@ -259,22 +259,24 @@ class SSM(SSM_Optimizer):
             
             if self.state['mode'] == 'log10 loss plus smooth':
                 self.state['smoothing'] = xk1.dot(gk).item() - (0.5 * self.state['lr']) * ((1 + self.state['momemtum'])/(1 - self.state['momemtum'])) * (dk.dot(dk).item())
-                self.state['stats_val'] =  np.log10(self.state['loss']) + self.state['smoothing']
+                self.state['loss'] = np.log10(self.state['loss'])
+                self.state['stats_val'] =  self.state['loss'] + self.state['smoothing']
             
         
             if self.state['mode'] == 'In loss plus smooth':
                 self.state['smoothing'] = xk1.dot(gk).item() - (0.5 * self.state['lr']) * ((1 + self.state['momemtum'])/(1 - self.state['momemtum'])) * (dk.dot(dk).item())
-                self.state['stats_val'] =  np.log(self.state['loss']) + self.state['smoothing']
+                self.state['loss'] = np.log(self.state['loss'])
+                self.state['stats_val'] = self.state['loss']  + self.state['smoothing']
             
             if self.state['mode'] == 'sqrt loss plus smooth':
                 self.state['smoothing'] = xk1.dot(gk).item() - (0.5 * self.state['lr']) * ((1 + self.state['momemtum'])/(1 - self.state['momemtum'])) * (dk.dot(dk).item())
-                self.state['stats_val'] =  self.state['loss']**0.5 + self.state['smoothing']
+                self.state['loss'] = self.state['loss']**0.5
+                self.state['stats_val'] =  self.state['loss'] + self.state['smoothing']
             
             if self.state['mode'] == 'sasa_plus':
                 self.state['stats_x1d'] = xk1.dot(dk).item()
                 self.state['stats_ld2'] = (0.5 * self.state['lr']) * (dk.dot(dk).item())
                 self.state['stats_val'] = self.state['stats_x1d'] + self.state['stats_ld2']
-        
         
             # add statistic to leaky bucket
             self.state['bucket'].add(self.state['stats_val'])
