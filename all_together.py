@@ -272,18 +272,18 @@ class SSM(SSM_Optimizer):
             
             if self.state['mode'] == 'log10 loss plus smooth':
                 self.state['smoothing'] = xk1.dot(gk).item() - (0.5 * self.state['lr']) * ((1 + self.state['momemtum'])/(1 - self.state['momemtum'])) * (dk.dot(dk).item())
-                self.state['loss'] = np.log10(self.state['loss'])
+                self.state['loss'] = np.log10(self.state['loss']) - 0.5
                 self.state['stats_val'] =  self.state['loss'] + self.state['smoothing']
             
         
             if self.state['mode'] == 'In loss plus smooth':
                 self.state['smoothing'] = xk1.dot(gk).item() - (0.5 * self.state['lr']) * ((1 + self.state['momemtum'])/(1 - self.state['momemtum'])) * (dk.dot(dk).item())
-                self.state['loss'] = np.log(self.state['loss'])
+                self.state['loss'] = np.log(self.state['loss']) - 0.75
                 self.state['stats_val'] = self.state['loss']  + self.state['smoothing']
             
             if self.state['mode'] == 'sqrt loss plus smooth':
                 self.state['smoothing'] = xk1.dot(gk).item() - (0.5 * self.state['lr']) * ((1 + self.state['momemtum'])/(1 - self.state['momemtum'])) * (dk.dot(dk).item())
-                self.state['loss'] = self.state['loss']**0.5
+                self.state['loss'] = self.state['loss']**0.5 + 0.4
                 self.state['stats_val'] =  self.state['loss'] + self.state['smoothing']
             
             if self.state['mode'] == 'sasa_plus':
