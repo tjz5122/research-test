@@ -148,11 +148,11 @@ class Bucket(object):
         self.statistic = std * t_sigma_dof / math.sqrt(self.count)
         
         if composite_test == 2:
-            self.statistic += 0.02
+            self.statistic += 0.04
         if composite_test == 3:
-            self.statistic -= 0.02
+            self.statistic -= 0.01
         if composite_test == 4:
-            self.statistic -= 0.03
+            self.statistic -= 0.02
             
         return self.statistic < tolerance
 
@@ -301,6 +301,8 @@ class SSM(SSM_Optimizer):
                 self.state['lr'] /= self.state['drop_factor']
                 for group in self.param_groups:
                     group['lr'] = self.state['lr']
+                if self.state['composite_test'] <= 3:
+                    self.state['composite_test'] += 1
                 self._zero_buffers('momentum_buffer')
                 self.state['bucket'].reset()
 
@@ -674,7 +676,7 @@ class MgNet(nn.Module):
     
 ### Implementation
 minibatch_size = 128
-num_epochs = 360
+num_epochs = 150
 lr = 1
 degree = 256
 num_channel_input = 3 # since cifar10
