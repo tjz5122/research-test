@@ -148,11 +148,9 @@ class Bucket(object):
         self.statistic = std * t_sigma_dof / math.sqrt(self.count)
         
         if composite_test == 2:
-            self.statistic += 0.04
-        if composite_test == 3:
-            self.statistic -= 0.01
-        if composite_test == 4:
             self.statistic -= 0.02
+        if composite_test == 3:
+            self.statistic -= 0.03
             
         return self.statistic < tolerance
 
@@ -248,10 +246,8 @@ class SSM(SSM_Optimizer):
         if self.state['composite_test'] == 1:
             self.state['mode'] = 'loss plus smooth'
         if self.state['composite_test'] == 2:
-            self.state['mode'] = 'sqrt loss plus smooth'
-        if self.state['composite_test'] == 3:
             self.state['mode'] = 'log10 loss plus smooth'
-        if self.state['composite_test'] == 4:
+        if self.state['composite_test'] == 3:
             self.state['mode'] = 'In loss plus smooth'
         
         
@@ -273,10 +269,6 @@ class SSM(SSM_Optimizer):
                 self.state['loss'] = np.log(self.state['loss']) 
                 self.state['stats_val'] = self.state['loss']  + self.state['smoothing']
             
-            if self.state['mode'] == 'sqrt loss plus smooth':
-                self.state['smoothing'] = xk1.dot(gk).item() - (0.5 * self.state['lr']) * ((1 + self.state['momemtum'])/(1 - self.state['momemtum'])) * (dk.dot(dk).item())
-                self.state['loss'] = self.state['loss']**0.5
-                self.state['stats_val'] =  self.state['loss'] + self.state['smoothing']
             
             if self.state['mode'] == 'sasa_plus':
                 self.state['stats_x1d'] = xk1.dot(dk).item()
@@ -301,7 +293,7 @@ class SSM(SSM_Optimizer):
                 self.state['lr'] /= self.state['drop_factor']
                 for group in self.param_groups:
                     group['lr'] = self.state['lr']
-                if self.state['composite_test'] <= 3:
+                if self.state['composite_test'] <= 2:
                     self.state['composite_test'] += 1
                 self._zero_buffers('momentum_buffer')
                 self.state['bucket'].reset()
