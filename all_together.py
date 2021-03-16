@@ -446,7 +446,7 @@ class MgNet(nn.Module):
     
 ### Implementation
 minibatch_size = 128
-num_epochs = 150
+num_epochs = 200
 lr = 1
 degree = 256
 num_channel_input = 3 # since cifar10
