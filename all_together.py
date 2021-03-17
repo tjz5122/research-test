@@ -148,9 +148,9 @@ class Bucket(object):
         self.statistic = std * t_sigma_dof / math.sqrt(self.count)
         
         if composite_test == 2:
-            self.statistic -= 0.02
+            self.statistic -= 0.025
         if composite_test == 3:
-            self.statistic -= 0.03
+            self.statistic -= 0.04
             
         return self.statistic < tolerance
 
@@ -248,7 +248,7 @@ class SSM(SSM_Optimizer):
         if self.state['composite_test'] == 2:
             self.state['mode'] = 'log10 loss plus smooth'
         if self.state['composite_test'] == 3:
-            self.state['mode'] = 'In loss plus smooth'
+            self.state['mode'] = 'log5 loss plus smooth'
         
         
         if self.state['nSteps'] % self.state['samplefreq'] == 0:
@@ -264,9 +264,9 @@ class SSM(SSM_Optimizer):
                 self.state['stats_val'] =  self.state['loss'] + self.state['smoothing']
             
         
-            if self.state['mode'] == 'In loss plus smooth':
+            if self.state['mode'] == 'log5 loss plus smooth':
                 self.state['smoothing'] = xk1.dot(gk).item() - (0.5 * self.state['lr']) * ((1 + self.state['momemtum'])/(1 - self.state['momemtum'])) * (dk.dot(dk).item())
-                self.state['loss'] = np.log(self.state['loss']) 
+                self.state['loss'] = np.log10(self.state['loss']) /  np.log10(5)
                 self.state['stats_val'] = self.state['loss']  + self.state['smoothing']
             
             
