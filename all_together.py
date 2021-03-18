@@ -191,7 +191,7 @@ class SSM(SSM_Optimizer):
         if testfreq < 1:
             raise ValueError("Invalid value for testfreq (int, >=1): {}".format(testfreq))
 
-        super(SSM, self).__init__(params, lr=lr, momentum=momentum, weight_decay=weight_decay, significance=significance)
+        super(SSM, self).__init__(params, lr=lr, momentum=momentum, weight_decay=weight_decay)
         # New Python3 way to call super()
         # super().__init__(params, lr=lr, momentum=momentum, nu=nu, weight_decay=weight_decay)
 
