@@ -1,3 +1,11 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Wed Mar 17 23:24:53 2021
+
+@author: thzha
+"""
+
+
 import math
 import torch
 import torch.nn as nn
@@ -11,11 +19,10 @@ from timeit import default_timer as timer
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
-
 class SSM_Optimizer(Optimizer):
 
 
-    def __init__(self, params, lr=-1, momentum=0, SSM_Optimizer_nu=1, weight_decay=0):
+    def __init__(self, params, lr=-1, momentum=0, weight_decay=0):
         # nu can take values outside of the interval [0,1], but no guarantee of convergence?
         if lr <= 0:
             raise ValueError("Invalid value for learning rate (>0): {}".format(lr))
@@ -24,7 +31,7 @@ class SSM_Optimizer(Optimizer):
         if weight_decay < 0:
             raise ValueError("Invalid value for weight_decay (>=0): {}".format(weight_decay))
 
-        defaults = dict(lr=lr, momentum=momentum, SSM_Optimizer_nu=SSM_Optimizer_nu, weight_decay=weight_decay)
+        defaults = dict(lr=lr, momentum=momentum, weight_decay=weight_decay)
         super(SSM_Optimizer, self).__init__(params, defaults)
 
 
@@ -38,7 +45,7 @@ class SSM_Optimizer(Optimizer):
         return loss
 
     def add_weight_decay(self):
-        # weight_decay is the same as adding L2 regularization
+        
         for group in self.param_groups:
             weight_decay = group['weight_decay']
             for p in group['params']:
@@ -140,17 +147,21 @@ class Bucket(object):
 
         return mean, std, dof
 
-    def stats_test(self, sigma, tolerance, mode='bm',composite_test=1):
+    def stats_test(self, sigma, tolerance, mode='bm',step_test=1):
         mean, std, dof = self.mean_std(mode=mode)
 
         # confidence interval
         t_sigma_dof = stats.t.ppf(1-sigma/2., dof)
         self.statistic = std * t_sigma_dof / math.sqrt(self.count)
         
-        if composite_test == 2:
-            self.statistic -= 0.025
-        if composite_test == 3:
-            self.statistic -= 0.04
+        if step_test == 2:
+            self.statistic -= 0.02
+        if step_test == 3:
+            self.statistic -= 0.02
+        if step_test == 4:
+            self.statistic -= 0.02
+        if step_test == 5:
+            self.statistic -= 0.02
             
         return self.statistic < tolerance
 
@@ -158,8 +169,8 @@ class Bucket(object):
 class SSM(SSM_Optimizer):
 
     def __init__(self, params, lr=-1, momentum=0, weight_decay=0, 
-                 warmup=1000, drop_factor=10, significance=0.05, tolerance = 0.01, var_mode='mb',
-                 leak_ratio=8, minN_stats=100, testfreq=100, samplefreq = 10, logstats=0, mode='loss plus smooth'):
+                 drop_factor=10, significance=0.05, tolerance = 0.01, var_mode='mb',
+                 leak_ratio=8, minN_stats=100, testfreq=100, samplefreq = 10, mode='loss_plus_smooth'):
 
         if lr <= 0:
             raise ValueError("Invalid value for learning rate (>0): {}".format(lr))
@@ -177,12 +188,10 @@ class SSM(SSM_Optimizer):
             raise ValueError("Invalid value for leak_ratio (int, >=1): {}".format(leak_ratio))
         # if minN_stats < 100:
         #     raise ValueError("Invalid value for minN_stats (int, >=100): {}".format(minN_stats))
-        if warmup < 0:
-            raise ValueError("Invalid value for warmup (int, >1): {}".format(warmup))
         if testfreq < 1:
             raise ValueError("Invalid value for testfreq (int, >=1): {}".format(testfreq))
 
-        super(SSM, self).__init__(params, lr=lr, momentum=momentum, weight_decay=weight_decay)
+        super(SSM, self).__init__(params, lr=lr, momentum=momentum, weight_decay=weight_decay, significance=significance)
         # New Python3 way to call super()
         # super().__init__(params, lr=lr, momentum=momentum, nu=nu, weight_decay=weight_decay)
 
@@ -198,14 +207,12 @@ class SSM(SSM_Optimizer):
         self.state['tolerance'] = tolerance
         self.state['var_mode'] = var_mode
         self.state['minN_stats'] = int(minN_stats)
-        self.state['warmup'] = int(warmup)
         self.state['samplefreq'] = int(samplefreq)
         self.state['testfreq'] = int(testfreq)
-        self.state['logstats'] = int(logstats)
         self.state['nSteps'] = 0
         self.state['loss'] = 0
         self.state['mode'] = mode
-        self.state['composite_test'] = 1
+        self.state['step_test'] = 1
 
 
         # statistics to monitor
@@ -243,32 +250,45 @@ class SSM(SSM_Optimizer):
         gk = self._gather_flat_grad()
         
         
-        if self.state['composite_test'] == 1:
-            self.state['mode'] = 'loss plus smooth'
-        if self.state['composite_test'] == 2:
-            self.state['mode'] = 'log10 loss plus smooth'
-        if self.state['composite_test'] == 3:
-            self.state['mode'] = 'log5 loss plus smooth'
+        if self.state['step_test'] == 1:
+            self.state['mode'] = 'loss_plus_smooth'
+        if self.state['step_test'] == 2:
+            self.state['mode'] = 'log10loss_plus_smooth'
+        if self.state['step_test'] == 3:
+            self.state['mode'] = 'log5loss_plus_smooth'
+        if self.state['step_test'] == 4:
+            self.state['mode'] = 'log2d5loss_plus_smooth'
+        if self.state['step_test'] == 5:
+            self.state['mode'] = 'log1d25loss_plus_smooth'
         
         
         if self.state['nSteps'] % self.state['samplefreq'] == 0:
 
-            if self.state['mode'] == 'loss plus smooth':
+            if self.state['mode'] == 'loss_plus_smooth':
                 self.state['smoothing'] = xk1.dot(gk).item() - (0.5 * self.state['lr']) * ((1 + self.state['momemtum'])/(1 - self.state['momemtum'])) * (dk.dot(dk).item())
                 self.state['stats_val'] =  self.state['loss'] + self.state['smoothing']
             
             
-            if self.state['mode'] == 'log10 loss plus smooth':
+            if self.state['mode'] == 'log10loss_plus_smooth':
                 self.state['smoothing'] = xk1.dot(gk).item() - (0.5 * self.state['lr']) * ((1 + self.state['momemtum'])/(1 - self.state['momemtum'])) * (dk.dot(dk).item())
                 self.state['loss'] = np.log10(self.state['loss'])
                 self.state['stats_val'] =  self.state['loss'] + self.state['smoothing']
             
         
-            if self.state['mode'] == 'log5 loss plus smooth':
+            if self.state['mode'] == 'log5loss_plus_smooth':
                 self.state['smoothing'] = xk1.dot(gk).item() - (0.5 * self.state['lr']) * ((1 + self.state['momemtum'])/(1 - self.state['momemtum'])) * (dk.dot(dk).item())
-                self.state['loss'] = np.log10(self.state['loss']) /  np.log10(5)
+                self.state['loss'] = np.log10(self.state['loss']) / np.log10(5) 
                 self.state['stats_val'] = self.state['loss']  + self.state['smoothing']
             
+            if self.state['mode'] == 'log2d5loss_plus_smooth':
+                self.state['smoothing'] = xk1.dot(gk).item() - (0.5 * self.state['lr']) * ((1 + self.state['momemtum'])/(1 - self.state['momemtum'])) * (dk.dot(dk).item())
+                self.state['loss'] = np.log10(self.state['loss']) / np.log10(2.5) 
+                self.state['stats_val'] = self.state['loss']  + self.state['smoothing']
+            
+            if self.state['mode'] == 'log1d25loss_plus_smooth':
+                self.state['smoothing'] = xk1.dot(gk).item() - (0.5 * self.state['lr']) * ((1 + self.state['momemtum'])/(1 - self.state['momemtum'])) * (dk.dot(dk).item())
+                self.state['loss'] = np.log10(self.state['loss']) / np.log10(1.25) 
+                self.state['stats_val'] = self.state['loss']  + self.state['smoothing']
             
             if self.state['mode'] == 'sasa_plus':
                 self.state['stats_x1d'] = xk1.dot(dk).item()
@@ -283,18 +303,18 @@ class SSM(SSM_Optimizer):
         self.state['stats_stationary'] = 0
         self.state['statistic'] = 0
         if self.state['bucket'].count > self.state['minN_stats'] and self.state['nSteps'] % self.state['testfreq'] == 0:
-            stationary= self.state['bucket'].stats_test(self.state['significance'], self.state['tolerance'], self.state['var_mode'],self.state['composite_test'])
+            stationary= self.state['bucket'].stats_test(self.state['significance'], self.state['tolerance'], self.state['var_mode'],self.state['step_test'])
             self.state['stats_test'] = 1
             self.state['statistic'] = self.state['bucket'].statistic
             self.state['stats_stationary'] = int(stationary)
     
             # perform statistical test for stationarity
-            if self.state['warmup'] < self.state['nSteps'] and self.state['stats_stationary'] == 1:
+            if self.state['stats_stationary'] == 1:
                 self.state['lr'] /= self.state['drop_factor']
+                if self.state['step_test'] <= 4:
+                  self.state['step_test'] += 1
                 for group in self.param_groups:
                     group['lr'] = self.state['lr']
-                if self.state['composite_test'] <= 2:
-                    self.state['composite_test'] += 1
                 self._zero_buffers('momentum_buffer')
                 self.state['bucket'].reset()
 
@@ -342,6 +362,9 @@ class SSM(SSM_Optimizer):
                     state[buf_name].zero_()
         return None
     
+
+    
+
 
 
 ### Design the Mgnet Network
@@ -446,7 +469,7 @@ class MgNet(nn.Module):
     
 ### Implementation
 minibatch_size = 128
-num_epochs = 360
+num_epochs = 120
 lr = 1
 degree = 256
 num_channel_input = 3 # since cifar10
@@ -483,7 +506,7 @@ testset = torchvision.datasets.CIFAR10(root='./data', train=False, download=True
 testloader = torch.utils.data.DataLoader(testset, batch_size=minibatch_size, shuffle=False)
 
 
-optimizer = SSM(my_model.parameters(), lr=1, weight_decay=0.0001,momentum=0.9, testfreq=len(trainloader), mode = 'sqrt loss plus smooth', var_mode='mb', tolerance = 0.01, minN_stats=100)
+optimizer = SSM(my_model.parameters(), lr=1, weight_decay=0.0001,momentum=0.9, testfreq=len(trainloader), var_mode='mb', tolerance = 0.01, minN_stats=100)
 
 
 
