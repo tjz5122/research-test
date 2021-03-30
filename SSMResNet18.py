@@ -155,21 +155,15 @@ class Bucket(object):
 
         return mean, std, dof
 
-    def stats_test(self, sigma, tolerance, mode='bm',step_test=1):
+    def stats_test(self, sigma, tolerance, mode='bm',step_test=1,truncate=0.02):
         mean, std, dof = self.mean_std(mode=mode)
 
         # confidence interval
         t_sigma_dof = stats.t.ppf(1-sigma/2., dof)
         self.statistic = std * t_sigma_dof / math.sqrt(self.count)
         
-        if step_test == 2:
-            self.statistic -= 0.02
-        if step_test == 3:
-            self.statistic -= 0.02
-        if step_test == 4:
-            self.statistic -= 0.02
-        if step_test == 5:
-            self.statistic -= 0.02
+        if step_test != 0:
+            self.statistic -= truncate
             
         return self.statistic < tolerance
 
@@ -220,8 +214,7 @@ class SSM(SSM_Optimizer):
         self.state['nSteps'] = 0
         self.state['loss'] = 0
         self.state['mode'] = mode
-        self.state['step_test'] = 1
-
+        self.state['step_test'] = 0
 
         # statistics to monitor
         self.state['smoothing'] = 0
@@ -232,6 +225,7 @@ class SSM(SSM_Optimizer):
         self.state['statistic'] = 0
         self.state['stats_stationary'] = 0
         self.state['stats_mean'] = 0
+        self.state['truncate'] = 0.02
 
 
     def step(self, closure=None):
@@ -258,46 +252,16 @@ class SSM(SSM_Optimizer):
         gk = self._gather_flat_grad()
         
         
-        if self.state['step_test'] == 1:
-            self.state['mode'] = 'loss_plus_smooth'
-        if self.state['step_test'] == 2:
-            self.state['mode'] = 'log10loss_plus_smooth'
-        if self.state['step_test'] == 3:
-            self.state['mode'] = 'log5loss_plus_smooth'
-        if self.state['step_test'] == 4:
-            self.state['mode'] = 'log2d5loss_plus_smooth'
-        if self.state['step_test'] == 5:
-            self.state['mode'] = 'log1d25loss_plus_smooth'
-        
-        
         if self.state['nSteps'] % self.state['samplefreq'] == 0:
 
             if self.state['mode'] == 'loss_plus_smooth':
                 self.state['smoothing'] = xk1.dot(gk).item() - (0.5 * self.state['lr']) * ((1 + self.state['momemtum'])/(1 - self.state['momemtum'])) * (dk.dot(dk).item())
-                self.state['stats_val'] =  self.state['loss'] + self.state['smoothing']
-            
-            
-            if self.state['mode'] == 'log10loss_plus_smooth':
-                self.state['smoothing'] = xk1.dot(gk).item() - (0.5 * self.state['lr']) * ((1 + self.state['momemtum'])/(1 - self.state['momemtum'])) * (dk.dot(dk).item())
-                self.state['loss'] = np.log10(self.state['loss'])
-                self.state['stats_val'] =  self.state['loss'] + self.state['smoothing']
-            
-        
-            if self.state['mode'] == 'log5loss_plus_smooth':
-                self.state['smoothing'] = xk1.dot(gk).item() - (0.5 * self.state['lr']) * ((1 + self.state['momemtum'])/(1 - self.state['momemtum'])) * (dk.dot(dk).item())
-                self.state['loss'] = np.log10(self.state['loss']) / np.log10(5) 
-                self.state['stats_val'] = self.state['loss']  + self.state['smoothing']
-            
-            if self.state['mode'] == 'log2d5loss_plus_smooth':
-                self.state['smoothing'] = xk1.dot(gk).item() - (0.5 * self.state['lr']) * ((1 + self.state['momemtum'])/(1 - self.state['momemtum'])) * (dk.dot(dk).item())
-                self.state['loss'] = np.log10(self.state['loss']) / np.log10(2.5) 
-                self.state['stats_val'] = self.state['loss']  + self.state['smoothing']
-            
-            if self.state['mode'] == 'log1d25loss_plus_smooth':
-                self.state['smoothing'] = xk1.dot(gk).item() - (0.5 * self.state['lr']) * ((1 + self.state['momemtum'])/(1 - self.state['momemtum'])) * (dk.dot(dk).item())
-                self.state['loss'] = np.log10(self.state['loss']) / np.log10(1.25) 
-                self.state['stats_val'] = self.state['loss']  + self.state['smoothing']
-            
+                if self.state['step_test'] == 0:
+                    self.state['stats_val'] =  self.state['loss'] + self.state['smoothing']
+                else:
+                    self.state['loss'] = np.log10(self.state['loss']) / np.log10(10/self.state['step_test']) 
+                    self.state['stats_val'] = self.state['loss']  + self.state['smoothing']
+                
             if self.state['mode'] == 'sasa_plus':
                 self.state['stats_x1d'] = xk1.dot(dk).item()
                 self.state['stats_ld2'] = (0.5 * self.state['lr']) * (dk.dot(dk).item())
@@ -311,7 +275,7 @@ class SSM(SSM_Optimizer):
         self.state['stats_stationary'] = 0
         self.state['statistic'] = 0
         if self.state['bucket'].count > self.state['minN_stats'] and self.state['nSteps'] % self.state['testfreq'] == 0:
-            stationary= self.state['bucket'].stats_test(self.state['significance'], self.state['tolerance'], self.state['var_mode'],self.state['step_test'])
+            stationary= self.state['bucket'].stats_test(self.state['significance'], self.state['tolerance'], self.state['var_mode'],self.state['step_test'],self.state['truncate'])
             self.state['stats_test'] = 1
             self.state['statistic'] = self.state['bucket'].statistic
             self.state['stats_stationary'] = int(stationary)
@@ -319,8 +283,7 @@ class SSM(SSM_Optimizer):
             # perform statistical test for stationarity
             if self.state['stats_stationary'] == 1:
                 self.state['lr'] /= self.state['drop_factor']
-                if self.state['step_test'] <= 4:
-                  self.state['step_test'] += 1
+                self.state['step_test'] += 1
                 for group in self.param_groups:
                     group['lr'] = self.state['lr']
                 self._zero_buffers('momentum_buffer')
@@ -369,10 +332,6 @@ class SSM(SSM_Optimizer):
                 if buf_name in state:
                     state[buf_name].zero_()
         return None
-    
-
-    
-
 
 
 ### Design the Mgnet Network
