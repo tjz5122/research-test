@@ -621,6 +621,7 @@ def main():
 
     # example of files for training  
     f = open(training_file_name, 'w')
+    #f.write('{}{}{},ds={},ep={},lr={},wd={},m={},bs={},tol={},sig={},minstat={},samplefreq={},var={},key={},t={}'.format(num_iteration,args.net,degree,args.data,num_epochs,args.lr,args.weight_decay))
     f.write("train_accuracy_list_all = {}\n".format(str(train_accuracy_list)))
     f.write("test_accuracy_list_all = {}\n".format(str(test_accuracy_list)))
     f.write("lr_list_all = {}\n".format(str(lr_list)))
