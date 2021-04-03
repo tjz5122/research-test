@@ -3,7 +3,7 @@ import shlex
 import subprocess
 import threading
 import signal
-import itertools
+from itertools import product
 
 
 def run_command(env):
@@ -33,7 +33,7 @@ test_param_groups["net_group"] = ["resnet18","mgnet"]
 # flexible
 chosen_param_groups = ["lr_group","batch_size_group","wd_group","trail_group"]
 value_list = [test_param_groups[group] for group in chosen_param_groups]
-test_list = itertools.product(*value_list)
+test_list = list(product(*value_list))
 command = 'python trainmain.py --cuda --net=mgnet --ch=256 --iter=2222 --data cifar10 --epochs=120 --lr={} -b={} -m=0.8 --wd={} --km loss_plus_smooth --vm mb --minstat=100 --sf=100 --trun=0.005 --sig=0.05 --trail={}'
 # flexible
 
@@ -55,6 +55,7 @@ command_list = [shlex.split(comm) for comm in command_list]
 '''
 
 # List all the GPUs you have
+
 ids_cuda = [0,1,2,3]
 for c in ids_cuda:
     env = os.environ.copy()
