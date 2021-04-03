@@ -1,9 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Tue Mar 23 10:55:41 2021
-
-@author: thzha
-"""
 import math
 import torch
 import torch.nn as nn
@@ -11,7 +5,6 @@ import torch.nn.functional as F
 from torch.optim import Optimizer
 from scipy import stats
 import numpy as np
-import torch.optim as optim
 import torchvision
 from timeit import default_timer as timer
 import argparse
@@ -243,12 +236,23 @@ class SSM(SSM_Optimizer):
         if self.state['nSteps'] % self.state['samplefreq'] == 0:
 
             if self.state['mode'] == 'loss_plus_smooth':
+                self.state['tolerance'] = 0.01
                 self.state['smoothing'] = xk1.dot(gk).item() - (0.5 * self.state['lr']) * ((1 + self.state['momemtum'])/(1 - self.state['momemtum'])) * (dk.dot(dk).item())
                 if self.state['step_test'] == 0:
                     self.state['stats_val'] =  self.state['loss'] + self.state['smoothing']
                 else:
                     self.state['loss'] = np.log10(self.state['loss']) / np.log10(10/self.state['step_test']) 
                     self.state['stats_val'] = self.state['loss']  + self.state['smoothing']
+                    
+                    
+            if self.state['mode'] == 'loss':
+                self.state['tolerance'] = 0.005
+                if self.state['step_test'] == 0:
+                    self.state['stats_val'] =  self.state['loss'] 
+                else:
+                    self.state['loss'] = np.log10(self.state['loss']) / np.log10(10/self.state['step_test']) 
+                    self.state['stats_val'] = self.state['loss']  
+                
                 
             if self.state['mode'] == 'sasa_plus':
                 self.state['stats_x1d'] = xk1.dot(dk).item()
@@ -330,6 +334,7 @@ class SSM(SSM_Optimizer):
 use_cuda = torch.cuda.is_available()
 print('Use GPU?', use_cuda)
 
+##MgNet
 class MgIte(nn.Module): 
     def __init__(self, A, S):
         super().__init__()
@@ -422,124 +427,65 @@ class MgNet(nn.Module):
     
     
     
+##ResNet18
+class BasicBlock(nn.Module):
+    def __init__(self, in_planes, planes, stride):
+        super().__init__()
+        self.conv1 = nn.Conv2d(in_planes, planes, kernel_size=3, stride=stride, padding=1, bias=False)
+        self.bn1 = nn.BatchNorm2d(planes)
+        self.conv2 = nn.Conv2d(planes, planes, kernel_size=3, stride=1, padding=1, bias=False)
+        self.bn2 = nn.BatchNorm2d(planes)
+
+        self.shortcut = nn.Sequential()
+        if stride != 1:
+            self.shortcut = nn.Sequential(nn.Conv2d(in_planes, planes, kernel_size=1, stride=stride, bias=False),
+                                          nn.BatchNorm2d(planes))
+
+    def forward(self, x):
+        out = F.relu(self.bn1(self.conv1(x)))
+        out = self.bn2(self.conv2(out))
+        out += self.shortcut(x)
+        out = F.relu(out)
+        return out
+
+
+class ResNet(nn.Module):
+    def __init__(self, block, num_blocks, num_classes=10):
+        super().__init__()
+        self.in_planes = 64
+
+        self.conv1 = nn.Conv2d(3, 64, kernel_size=3, stride=1, padding=1, bias=False)
+        self.bn1 = nn.BatchNorm2d(64)
+        self.layer1 = self._make_layer(block, 64, num_blocks[0], stride=1)
+        self.layer2 = self._make_layer(block, 128, num_blocks[1], stride=2)
+        self.layer3 = self._make_layer(block, 256, num_blocks[2], stride=2)
+        self.layer4 = self._make_layer(block, 512, num_blocks[3], stride=2)
+        self.linear = nn.Linear(512, num_classes)
+
+    def _make_layer(self, block, planes, num_blocks, stride):
+        strides = [stride] + [1]*(num_blocks-1)
+        layers = []
+        for stride in strides:
+            layers.append(block(self.in_planes, planes, stride))
+            self.in_planes = planes
+        return nn.Sequential(*layers)
+
+    def forward(self, x):
+        out = F.relu(self.bn1(self.conv1(x)))
+        out = self.layer1(out)
+        out = self.layer2(out)
+        out = self.layer3(out)
+        out = self.layer4(out)
+        out = F.avg_pool2d(out, 4)
+        out = out.view(out.size(0), -1)
+        out = self.linear(out)
+        return out  
     
     
-    
-    
-### Implementation
-minibatch_size = 128
-num_epochs = 360
-lr = 1
-degree = 256
-num_channel_input = 3 # since cifar10
-num_channel_u = degree # usaually take channel u and f same, suggested value = 64,128,256,512.....
-num_channel_f = degree
-num_classes = 10
-num_iteration = [2,2,2,2] # for each layer do 1 iteration or you can change to [2,2,2,2] or [2,1,1,1]
-
-# Step 1: Define a model
-my_model = MgNet(num_channel_input, num_iteration, num_channel_u, num_channel_f, num_classes)
-
-if use_cuda:
-    my_model = my_model.cuda()
-
-# Step 2: Define a loss function and training algorithm
-criterion = nn.CrossEntropyLoss()
-
-
-# Step 3: load dataset
-normalize = torchvision.transforms.Normalize(mean=(0.4914, 0.4822, 0.4465), std=(0.2023, 0.1994, 0.2010))
-
-transform_train = torchvision.transforms.Compose([torchvision.transforms.RandomCrop(32, padding=4),
-                                                  torchvision.transforms.RandomHorizontalFlip(),
-                                                  torchvision.transforms.ToTensor(),
-                                                  normalize])
-
-transform_test  = torchvision.transforms.Compose([torchvision.transforms.ToTensor(),normalize])
-
-
-trainset = torchvision.datasets.CIFAR10(root='./data', train=True, download=True, transform=transform_train)
-trainloader = torch.utils.data.DataLoader(trainset, batch_size=minibatch_size, shuffle=True)
-
-testset = torchvision.datasets.CIFAR10(root='./data', train=False, download=True, transform=transform_test)
-testloader = torch.utils.data.DataLoader(testset, batch_size=minibatch_size, shuffle=False)
-
-
-optimizer = SSM(my_model.parameters(), lr=1, weight_decay=0.0001,momentum=0.9, testfreq=len(trainloader), var_mode='mb', tolerance = 0.01, minN_stats=100)
 
 
 
-
-train_accuracy_list = []
-test_accuracy_list = []
-lr_list = []
-statistic_list = []
-avg_loss_list = []
-key_list = []
-
-start = timer()
-#Step 4: Train the NNs
-# One epoch is when an entire dataset is passed through the neural network only once.
-for epoch in range(num_epochs):
-    running_loss = 0
-    my_model.train()
-    for i, (images, labels) in enumerate(trainloader):
-        if use_cuda:
-          images = images.cuda()
-          labels = labels.cuda()
-
-        # Forward pass to get the loss
-        outputs = my_model(0,images)   # We need additional 0 input for u in MgNet
-        loss = criterion(outputs, labels)
-        optimizer.state['loss'] = loss.item()
-        # Backward and compute the gradient
-        optimizer.zero_grad()
-        loss.backward()  #backpropragation
-        running_loss += loss.item()
-        optimizer.step() #update the weights/parameters
-    avg_loss_list.append(running_loss)
-    
-    
-  # Training accuracy
-    my_model.eval()
-    correct = 0
-    total = 0
-    for i, (images, labels) in enumerate(trainloader):
-        with torch.no_grad():
-          if use_cuda:
-              images = images.cuda()
-              labels = labels.cuda()  
-          outputs = my_model(0,images)  # We need additional 0 input for u in MgNet, since u is initialized with 0; if do not give u a value in there, it will be reinitialized by forward function. 
-          p_max, predicted = torch.max(outputs, 1) 
-          total += labels.size(0)
-          correct += (predicted == labels).sum()
-    training_accuracy = float(correct)/total
-    train_accuracy_list.append(training_accuracy)     
-    
-    # Test accuracy
-    correct = 0
-    total = 0
-    for i, (images, labels) in enumerate(testloader):
-        with torch.no_grad():
-          if use_cuda:
-              images = images.cuda()
-              labels = labels.cuda()
-          outputs = my_model(0,images)      # We need additional 0 input for u in MgNet
-          p_max, predicted = torch.max(outputs, 1) 
-          total += labels.size(0)
-          correct += (predicted == labels).sum()
-    test_accuracy = float(correct)/total
-    test_accuracy_list.append(test_accuracy)
-    statistic_list.append(optimizer.state['statistic'])
-    key_list.append(tuple([optimizer.state['stats_val'],optimizer.state['loss'],optimizer.state['smoothing']]))
-    current_lr = optimizer.state['lr']
-    lr_list.append(current_lr)
-end = timer()
-
-
-print("complete")
-
-
+###args
 def get_args():
     parser = argparse.ArgumentParser(description='A general training enviroment for different learning methods.')
 
@@ -552,17 +498,17 @@ def get_args():
     parser.add_argument('--trail', default='0', type=str, help='trail of the same params.')
 
     # For methods    
-    parser.add_argument('--epochs', type=int, help='epoch number', default=30)
+    parser.add_argument('--epochs', type=int, help='epoch number', default=120)
 
     parser.add_argument('-b', '--batch_size', default=128, type=int, metavar='N', help='mini_batch size (default: 128)')
     
-    parser.add_argument('--lr', '--learning-rate', default=0.1, type=float, metavar='LR', help='initial learning rate')
+    parser.add_argument('--lr', '--learning-rate', default=1.0, type=float, metavar='LR', help='initial learning rate')
     
-    parser.add_argument('-m', '--momentum', default=0.9, type=float, metavar='M', help='momentum')
+    parser.add_argument('-m', '--momentum', default=0.8, type=float, metavar='M', help='momentum')
     
     parser.add_argument('--weight-decay', '--wd', default=5e-4, type=float, metavar='W', help='weight decay (e.g. 5e-4)')
             
-    parser.add_argument('--tol', metavar='tolerance', default=0.005, type=float,  help='tolerance level (default: 0.005)')
+    parser.add_argument('--trun', metavar='truncate', default=0.02, type=float,  help='truncate value (default: 0.02)')
     
     parser.add_argument('--sig', metavar='significance', default=0.05, type=float,  help='significance level (default: 0.05)')
     
@@ -575,10 +521,8 @@ def get_args():
     parser.add_argument('--keymode', '--km', metavar='key_mode', default="loss_plus_smooth", type=str, help='key mode (default: loss_plus_smooth')
     
 
-    # For Data
-    parser.add_argument('--data-path', default='~/Data', type=str,help='The path of datasets')
-    
-    parser.add_argument('--data', type=str, help='points or mnist', default='cifar10')
+    # For Data    
+    parser.add_argument('--data', type=str, help='cifar10, cifar100 or mnist', default='cifar10')
     
     # For models
     parser.add_argument('--net', metavar='neural_network', default='mgnet')
@@ -592,27 +536,164 @@ def get_args():
 
 def main():
     args = get_args()  # get the arguments
-    
-    
 
-    args.name = '{}{}{},ds={},ep={},lr={},wd={},m={},bs={},tol={},sig={},minstat={},samplefreq={},var={},key={},t={}'
+    args.name = '{}{}{},ds={},ep={},lr={},wd={},m={},bs={},trun={},sig={},minstat={},samplefreq={},var={},key={},t={}'
     args.name = args.name.format(args.iter,
                                  args.net,
                                  args.ch,
                                  args.data,
                                  args.epochs,
                                  args.lr,
-                                 args.weight_decay,
+                                 args.wd,
                                  args.momentum,
-                                 args.batch_size,
-                                 args.tol,
+                                 args.b,
+                                 args.trun,
                                  args.sig,
                                  args.minstat,
-                                 args.samplefreq,
+                                 args.sf,
                                  args.varmode,
                                  args.keymode,
                                  args.trail
                                  )
+    
+    
+    
+    #implementation
+    minibatch_size = args.b
+    num_epochs =  args.epochs
+    lr = args.lr
+    degree = args.ch
+    if args.data == 'cifar10' or 'cifar100':
+        num_channel_input = 3 # since cifar10
+    num_channel_u = degree # usaually take channel u and f same, suggested value = 64,128,256,512.....
+    num_channel_f = degree
+    if args.data == 'cifar10':
+        num_classes = 10
+    if args.data == 'cifar100':
+        num_classes = 100
+    num_iteration = list(args.iter) # for each layer do 1 iteration or you can change to [2,2,2,2] or [2,1,1,1]
+    
+    # Step 1: Define a model
+    my_model = MgNet(num_channel_input, num_iteration, num_channel_u, num_channel_f, num_classes)
+    
+    if use_cuda:
+        my_model = my_model.cuda()
+    
+    # Step 2: Define a loss function and training algorithm
+    criterion = nn.CrossEntropyLoss()
+    
+    
+    # Step 3: load dataset
+    if args.data == 'cifar10':
+        normalize = torchvision.transforms.Normalize(mean=(0.4914, 0.4822, 0.4465), std=(0.2023, 0.1994, 0.2010))
+    
+        transform_train = torchvision.transforms.Compose([torchvision.transforms.RandomCrop(32, padding=4),
+                                                          torchvision.transforms.RandomHorizontalFlip(),
+                                                          torchvision.transforms.ToTensor(),
+                                                          normalize])
+        transform_test  = torchvision.transforms.Compose([torchvision.transforms.ToTensor(),normalize])
+        trainset = torchvision.datasets.CIFAR10(root='./data', train=True, download=True, transform=transform_train)
+        trainloader = torch.utils.data.DataLoader(trainset, batch_size=minibatch_size, shuffle=True)
+        testset = torchvision.datasets.CIFAR10(root='./data', train=False, download=True, transform=transform_test)
+        testloader = torch.utils.data.DataLoader(testset, batch_size=minibatch_size, shuffle=False)
+    
+    if args.data == 'cifar100':
+        normalize = torchvision.transforms.Normalize(mean=(0.5071, 0.4867, 0.4408), std=(0.2675, 0.2565, 0.2761))
+    
+        transform_train = torchvision.transforms.Compose([torchvision.transforms.RandomCrop(32, padding=4),
+                                                          torchvision.transforms.RandomHorizontalFlip(),
+                                                          torchvision.transforms.ToTensor(),
+                                                          normalize])
+        transform_test  = torchvision.transforms.Compose([torchvision.transforms.ToTensor(),normalize])
+        trainset = torchvision.datasets.CIFAR100(root='./data', train=True, download=True, transform=transform_train)
+        trainloader = torch.utils.data.DataLoader(trainset, batch_size=minibatch_size, shuffle=True)
+        testset = torchvision.datasets.CIFAR100(root='./data', train=False, download=True, transform=transform_test)
+        testloader = torch.utils.data.DataLoader(testset, batch_size=minibatch_size, shuffle=False)
+    
+    
+    optimizer = SSM(my_model.parameters(), lr, weight_decay=args.wd, momentum=args.momentum, testfreq=len(trainloader), var_mode=args.varmode, minN_stats=args.minstat, mode=args.keymode, samplefreq=args.sf, significance=args.sig)
+    
+    train_accuracy_list = []
+    test_accuracy_list = []
+    lr_list = []
+    statistic_list = []
+    avg_loss_list = []
+    key_list = []
+    epoch_time_list = []
+    
+    start = timer()
+    #Step 4: Train the NNs
+    # One epoch is when an entire dataset is passed through the neural network only once.
+    for epoch in range(num_epochs):
+        epoch_start_time = timer()
+        running_loss = 0
+        my_model.train()
+        for i, (images, labels) in enumerate(trainloader):
+            if use_cuda:
+              images = images.cuda()
+              labels = labels.cuda()
+    
+            # Forward pass to get the loss
+            if args.net == "mgnet":
+                outputs = my_model(0,images)   # We need additional 0 input for u in MgNet
+            if args.net == "resnet18":
+                outputs = my_model(images) 
+            loss = criterion(outputs, labels)
+            optimizer.state['loss'] = loss.item()
+            # Backward and compute the gradient
+            optimizer.zero_grad()
+            loss.backward()  #backpropragation
+            running_loss += loss.item()
+            optimizer.step() #update the weights/parameters
+        avg_loss_list.append(running_loss)
+        
+        
+      # Training accuracy
+        my_model.eval()
+        correct = 0
+        total = 0
+        for i, (images, labels) in enumerate(trainloader):
+            with torch.no_grad():
+              if use_cuda:
+                  images = images.cuda()
+                  labels = labels.cuda()  
+              if args.net == "mgnet":
+                  outputs = my_model(0,images)   # We need additional 0 input for u in MgNet
+              if args.net == "resnet18":
+                  outputs = my_model(images) 
+              p_max, predicted = torch.max(outputs, 1) 
+              total += labels.size(0)
+              correct += (predicted == labels).sum()
+        training_accuracy = float(correct)/total
+        train_accuracy_list.append(training_accuracy)     
+        
+        # Test accuracy
+        correct = 0
+        total = 0
+        for i, (images, labels) in enumerate(testloader):
+            with torch.no_grad():
+              if use_cuda:
+                  images = images.cuda()
+                  labels = labels.cuda()
+              if args.net == "mgnet":
+                  outputs = my_model(0,images)   # We need additional 0 input for u in MgNet
+              if args.net == "resnet18":
+                  outputs = my_model(images) 
+              p_max, predicted = torch.max(outputs, 1) 
+              total += labels.size(0)
+              correct += (predicted == labels).sum()
+        test_accuracy = float(correct)/total
+        test_accuracy_list.append(test_accuracy)
+        statistic_list.append(optimizer.state['statistic'])
+        key_list.append(tuple([optimizer.state['stats_val'],optimizer.state['loss'],optimizer.state['smoothing']]))
+        current_lr = optimizer.state['lr']
+        lr_list.append(current_lr)
+        epoch_end_time = timer()
+        epoch_time_list.append(epoch_end_time - epoch_start_time)
+    end = timer()
+    
+    
+    print("complete")
         
     # file name
     training_file_name = args.name + '.train'
@@ -621,17 +702,33 @@ def main():
 
     # example of files for training  
     f = open(training_file_name, 'w')
-    #f.write('{}{}{},ds={},ep={},lr={},wd={},m={},bs={},tol={},sig={},minstat={},samplefreq={},var={},key={},t={}'.format(num_iteration,args.net,degree,args.data,num_epochs,args.lr,args.weight_decay))
-    f.write("train_accuracy_list_all = {}\n".format(str(train_accuracy_list)))
-    f.write("test_accuracy_list_all = {}\n".format(str(test_accuracy_list)))
-    f.write("lr_list_all = {}\n".format(str(lr_list)))
-    f.write("statistic_list_all = {}\n".format(str(statistic_list)))
-    f.write("key_list_all = {}\n".format("array(" + str(key_list) + ")"))
-    f.write("avg_loss_list_all = {}\n".format(str(avg_loss_list)))
-    f.write("total_time_all = {}\n".format(str(end - start)))
+    f.write('{}{}{},ds={},ep={},lr={},wd={},m={},bs={},trun={},sig={},minstat={},samplefreq={},var={},key={},t={}'.format(
+                                 args.iter,
+                                 args.net,
+                                 args.ch,
+                                 args.data,
+                                 args.epochs,
+                                 args.lr,
+                                 args.wd,
+                                 args.momentum,
+                                 args.b,
+                                 args.trun,
+                                 args.sig,
+                                 args.minstat,
+                                 args.sf,
+                                 args.varmode,
+                                 args.keymode,
+                                 args.trail))
+    f.write("train_accuracy_list = {}\n".format(str(train_accuracy_list)))
+    f.write("test_accuracy_list = {}\n".format(str(test_accuracy_list)))
+    f.write("lr_list = {}\n".format(str(lr_list)))
+    f.write("statistic_list = {}\n".format(str(statistic_list)))
+    f.write("key_list = {}\n".format("array(" + str(key_list) + ")"))
+    f.write("avg_loss_list = {}\n".format(str(avg_loss_list)))
+    f.write("epoch_time_list = {}\n".format(str(epoch_time_list)))
+    f.write("total_time = {}\n".format(str(end - start)))
     f.close()
 
 if __name__ == '__main__':
-    
     main()
 
