@@ -557,7 +557,22 @@ def main():
                                  )
     
     
-    
+    print(args.iter,
+        args.net,
+        args.ch,
+        args.data,
+        args.epochs,
+        args.lr,
+        args.weight_decay,
+        args.momentum,
+        args.batch_size,
+        args.trun,
+        args.sig,
+        args.minstat,
+        args.samplefreq,
+        args.varmode,
+        args.keymode,
+        args.trail)
     #implementation
     minibatch_size = args.batch_size
     num_epochs =  args.epochs
