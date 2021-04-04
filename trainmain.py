@@ -502,11 +502,11 @@ def get_args():
 
     parser.add_argument('-b', '--batch_size', default=128, type=int, metavar='N', help='mini_batch size (default: 128)')
     
-    parser.add_argument('--lr', '--learning_rate', default=1.0, type=float, metavar='LR', help='initial learning rate')
+    parser.add_argument('--lr', '--learning-rate', default=1.0, type=float, metavar='LR', help='initial learning rate')
     
     parser.add_argument('-m', '--momentum', default=0.8, type=float, metavar='M', help='momentum')
     
-    parser.add_argument('--weight_decay', '--wd', default=5e-4, type=float, metavar='W', help='weight decay (e.g. 5e-4)')
+    parser.add_argument('--weight-decay', '--wd', default=5e-4, type=float, metavar='W', help='weight decay (e.g. 5e-4)')
             
     parser.add_argument('--trun', metavar='truncate', default=0.02, type=float,  help='truncate value (default: 0.02)')
     
@@ -544,7 +544,7 @@ def main():
                                  args.data,
                                  args.epochs,
                                  args.lr,
-                                 args.wd,
+                                 args.weight_decay,
                                  args.momentum,
                                  args.b,
                                  args.trun,
@@ -611,7 +611,7 @@ def main():
         testloader = torch.utils.data.DataLoader(testset, batch_size=minibatch_size, shuffle=False)
     
     
-    optimizer = SSM(my_model.parameters(), lr, weight_decay=args.wd, momentum=args.momentum, testfreq=len(trainloader), var_mode=args.varmode, minN_stats=args.minstat, mode=args.keymode, samplefreq=args.sf, significance=args.sig)
+    optimizer = SSM(my_model.parameters(), lr, weight_decay=args.weight_decay, momentum=args.momentum, testfreq=len(trainloader), var_mode=args.varmode, minN_stats=args.minstat, mode=args.keymode, samplefreq=args.sf, significance=args.sig)
     
     train_accuracy_list = []
     test_accuracy_list = []
@@ -709,7 +709,7 @@ def main():
                                  args.data,
                                  args.epochs,
                                  args.lr,
-                                 args.wd,
+                                 args.weight_decay,
                                  args.momentum,
                                  args.b,
                                  args.trun,
@@ -732,4 +732,3 @@ def main():
 if __name__ == '__main__':
     main()
 
-    
