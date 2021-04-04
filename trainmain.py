@@ -502,11 +502,11 @@ def get_args():
 
     parser.add_argument('-b', '--batch_size', default=128, type=int, metavar='N', help='mini_batch size (default: 128)')
     
-    parser.add_argument('--lr', '--learning-rate', default=1.0, type=float, metavar='LR', help='initial learning rate')
+    parser.add_argument('--lr', '--learning_rate', default=1.0, type=float, metavar='LR', help='initial learning rate')
     
     parser.add_argument('-m', '--momentum', default=0.8, type=float, metavar='M', help='momentum')
     
-    parser.add_argument('--weight-decay', '--wd', default=5e-4, type=float, metavar='W', help='weight decay (e.g. 5e-4)')
+    parser.add_argument('--weight_decay', '--wd', default=5e-4, type=float, metavar='W', help='weight decay (e.g. 5e-4)')
             
     parser.add_argument('--trun', metavar='truncate', default=0.02, type=float,  help='truncate value (default: 0.02)')
     
@@ -732,3 +732,4 @@ def main():
 if __name__ == '__main__':
     main()
 
+    
