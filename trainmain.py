@@ -500,7 +500,7 @@ def get_args():
     # For methods    
     parser.add_argument('--epochs', type=int, help='epoch number', default=120)
 
-    parser.add_argument('-b', '--batch_size', default=128, type=int, metavar='N', help='mini_batch size (default: 128)')
+    parser.add_argument('-b', '--batch-size', default=128, type=int, metavar='N', help='mini_batch size (default: 128)')
     
     parser.add_argument('--lr', '--learning-rate', default=1.0, type=float, metavar='LR', help='initial learning rate')
     
@@ -546,11 +546,11 @@ def main():
                                  args.lr,
                                  args.weight_decay,
                                  args.momentum,
-                                 args.b,
+                                 args.batch_size,
                                  args.trun,
                                  args.sig,
                                  args.minstat,
-                                 args.sf,
+                                 args.samplefreq,
                                  args.varmode,
                                  args.keymode,
                                  args.trail
@@ -559,7 +559,7 @@ def main():
     
     
     #implementation
-    minibatch_size = args.b
+    minibatch_size = args.batch_size
     num_epochs =  args.epochs
     lr = args.lr
     degree = args.ch
@@ -611,7 +611,7 @@ def main():
         testloader = torch.utils.data.DataLoader(testset, batch_size=minibatch_size, shuffle=False)
     
     
-    optimizer = SSM(my_model.parameters(), lr, weight_decay=args.weight_decay, momentum=args.momentum, testfreq=len(trainloader), var_mode=args.varmode, minN_stats=args.minstat, mode=args.keymode, samplefreq=args.sf, significance=args.sig)
+    optimizer = SSM(my_model.parameters(), lr, weight_decay=args.weight_decay, momentum=args.momentum, testfreq=len(trainloader), var_mode=args.varmode, minN_stats=args.minstat, mode=args.keymode, samplefreq=args.samplefreq, significance=args.sig)
     
     train_accuracy_list = []
     test_accuracy_list = []
@@ -711,7 +711,7 @@ def main():
                                  args.lr,
                                  args.weight_decay,
                                  args.momentum,
-                                 args.b,
+                                 args.batch_size,
                                  args.trun,
                                  args.sig,
                                  args.minstat,
