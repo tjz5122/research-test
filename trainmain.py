@@ -557,22 +557,6 @@ def main():
                                  )
     
     
-    print(args.iter,
-        args.net,
-        args.ch,
-        args.data,
-        args.epochs,
-        args.lr,
-        args.weight_decay,
-        args.momentum,
-        args.batch_size,
-        args.trun,
-        args.sig,
-        args.minstat,
-        args.samplefreq,
-        args.varmode,
-        args.keymode,
-        args.trail)
     #implementation
     minibatch_size = args.batch_size
     num_epochs =  args.epochs
@@ -586,7 +570,7 @@ def main():
         num_classes = 10
     if args.data == 'cifar100':
         num_classes = 100
-    num_iteration = list(args.iter) # for each layer do 1 iteration or you can change to [2,2,2,2] or [2,1,1,1]
+    num_iteration = [int(i) for i in list(args.iter)] # for each layer do 1 iteration or you can change to [2,2,2,2] or [2,1,1,1]
     
     # Step 1: Define a model
     my_model = MgNet(num_channel_input, num_iteration, num_channel_u, num_channel_f, num_classes)
