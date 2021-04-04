@@ -720,7 +720,7 @@ def main():
                                  args.trail))
     f.write("train_accuracy_list = {}\n".format(str(train_accuracy_list)))
     f.write("test_accuracy_list = {}\n".format(str(test_accuracy_list)))
-    f.write("lr_list = {}\n".format(str(lr_list)))
+    f.write("lr_list = {}\n".format("np.log10(array(" + str(lr_list) + "))"))
     f.write("statistic_list = {}\n".format(str(statistic_list)))
     f.write("key_list = {}\n".format("array(" + str(key_list) + ")"))
     f.write("avg_loss_list = {}\n".format(str(avg_loss_list)))
