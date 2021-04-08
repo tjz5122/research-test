@@ -538,25 +538,41 @@ def main():
     args = get_args()  # get the arguments
 
     args.name = '{}{}{},ds={},ep={},lr={},wd={},m={},bs={},trun={},sig={},minstat={},samplefreq={},var={},key={},t={}'
-    args.name = args.name.format(args.iter,
-                                 args.net,
-                                 args.ch,
-                                 args.data,
-                                 args.epochs,
-                                 args.lr,
-                                 args.weight_decay,
-                                 args.momentum,
-                                 args.batch_size,
-                                 args.trun,
-                                 args.sig,
-                                 args.minstat,
-                                 args.samplefreq,
-                                 args.varmode,
-                                 args.keymode,
-                                 args.trail
-                                 )
-    
-    
+    if args.net == "mgnet":
+        args.name = args.name.format(args.iter,
+                                     args.net,
+                                     args.ch,
+                                     args.data,
+                                     args.epochs,
+                                     args.lr,
+                                     args.weight_decay,
+                                     args.momentum,
+                                     args.batch_size,
+                                     args.trun,
+                                     args.sig,
+                                     args.minstat,
+                                     args.samplefreq,
+                                     args.varmode,
+                                     args.keymode,
+                                     args.trail
+                                     )
+    if args.net == "resnet18":
+        args.name = args.name.format(args.iter,
+                                     args.net,
+                                     args.data,
+                                     args.epochs,
+                                     args.lr,
+                                     args.weight_decay,
+                                     args.momentum,
+                                     args.batch_size,
+                                     args.trun,
+                                     args.sig,
+                                     args.minstat,
+                                     args.samplefreq,
+                                     args.varmode,
+                                     args.keymode,
+                                     args.trail
+                                     )
     #implementation
     minibatch_size = args.batch_size
     num_epochs =  args.epochs
@@ -704,10 +720,28 @@ def main():
 
     # example of files for training  
     f = open(training_file_name, 'w')
-    f.write('{}{}{},ds={},ep={},lr={},wd={},m={},bs={},trun={},sig={},minstat={},samplefreq={},var={},key={},t={}'.format(
+    if args.net == "mgnet":
+        f.write('{}{}{},ds={},ep={},lr={},wd={},m={},bs={},trun={},sig={},minstat={},samplefreq={},var={},key={},t={}'.format(
                                  args.iter,
                                  args.net,
                                  args.ch,
+                                 args.data,
+                                 args.epochs,
+                                 args.lr,
+                                 args.weight_decay,
+                                 args.momentum,
+                                 args.batch_size,
+                                 args.trun,
+                                 args.sig,
+                                 args.minstat,
+                                 args.samplefreq,
+                                 args.varmode,
+                                 args.keymode,
+                                 args.trail))
+    if args.net == "resnet18":
+        f.write('{}{},ds={},ep={},lr={},wd={},m={},bs={},trun={},sig={},minstat={},samplefreq={},var={},key={},t={}'.format(
+                                 args.iter,
+                                 args.net,
                                  args.data,
                                  args.epochs,
                                  args.lr,
