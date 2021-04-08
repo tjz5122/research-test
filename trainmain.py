@@ -714,7 +714,7 @@ def main():
                                  args.trun,
                                  args.sig,
                                  args.minstat,
-                                 args.sf,
+                                 args.samplefreq,
                                  args.varmode,
                                  args.keymode,
                                  args.trail))
