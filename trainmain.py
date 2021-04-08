@@ -573,8 +573,11 @@ def main():
     num_iteration = [int(i) for i in list(args.iter)] # for each layer do 1 iteration or you can change to [2,2,2,2] or [2,1,1,1]
     
     # Step 1: Define a model
-    my_model = MgNet(num_channel_input, num_iteration, num_channel_u, num_channel_f, num_classes)
-    
+    if args.net == "mgnet":
+        my_model = MgNet(num_channel_input, num_iteration, num_channel_u, num_channel_f, num_classes)
+    if args.net == "resnet18":
+        my_model = ResNet(BasicBlock, num_iteration, num_classes=num_classes)
+        
     if use_cuda:
         my_model = my_model.cuda()
     
