@@ -537,8 +537,8 @@ def get_args():
 def main():
     args = get_args()  # get the arguments
 
-    args.name = '{}{}{},ds={},ep={},lr={},wd={},m={},bs={},trun={},sig={},minstat={},samplefreq={},var={},key={},t={}'
     if args.net == "mgnet":
+        args.name = '{}{}{},ds={},ep={},lr={},wd={},m={},bs={},trun={},sig={},minstat={},samplefreq={},var={},key={},t={}'
         args.name = args.name.format(args.iter,
                                      args.net,
                                      args.ch,
@@ -557,6 +557,7 @@ def main():
                                      args.trail
                                      )
     if args.net == "resnet18":
+        args.name = '{}{},ds={},ep={},lr={},wd={},m={},bs={},trun={},sig={},minstat={},samplefreq={},var={},key={},t={}'
         args.name = args.name.format(args.iter,
                                      args.net,
                                      args.data,
