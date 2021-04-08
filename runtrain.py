@@ -21,8 +21,8 @@ def run_command(env):
 
 test_param_groups = {}
 test_param_groups["lr_group"] = [10.0,1.0,0.1]
-test_param_groups["wd_group"] = [0.1,0.01,0.001]
-test_param_groups["trail_group"] = [1,2,3]
+test_param_groups["wd_group"] = [0.01,0.001]
+test_param_groups["trail_group"] = [1,2]
 test_param_groups["batch_size_group"] = [128,256]
 test_param_groups["data_group"] = ["cifar10","cifar100"]
 test_param_groups["epochs_group"] = [120,240,360]
@@ -31,10 +31,10 @@ test_param_groups["net_group"] = ["resnet18","mgnet"]
 
 
 # flexible
-chosen_param_groups = ["lr_group","batch_size_group","wd_group","trail_group"]
+chosen_param_groups = ["wd_group","trail_group"]
 value_list = [test_param_groups[group] for group in chosen_param_groups]
 test_list = list(product(*value_list))
-command = 'python trainmain.py --cuda --net=mgnet --ch=256 --iter=2222 --data cifar10 --epochs=120 --lr={} -b={} -m=0.8 --wd={} --km loss_plus_smooth --vm mb --minstat=100 --sf=100 --trun=0.02 --sig=0.05 --trail={}'
+command = 'python trainmain.py --cuda --net=resnet18 --ch=256 --iter=2222 --data cifar10 --epochs=120 --lr=1 -b=128 -m=0.8 --wd={} --km loss_plus_smooth --vm mb --minstat=100 --sf=100 --trun=0.02 --sig=0.05 --trail={}'
 # flexible
 
 
