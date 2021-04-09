@@ -166,7 +166,7 @@ class SSM(SSM_Optimizer):
         if significance <= 0 or significance >= 1:
             raise ValueError("Invalid value for significance (0,1): {}".format(significance))
         if var_mode not in ['bm', 'olbm', 'iid']:
-            raise ValueError("Invalid value for var_mode ('bm', 'olmb', or 'iid'): {}".format(var_mode))
+            raise ValueError("Invalid value for var_mode ('bm', 'olbm', or 'iid'): {}".format(var_mode))
         if leak_ratio < 1:
             raise ValueError("Invalid value for leak_ratio (int, >=1): {}".format(leak_ratio))
         # if minN_stats < 100:
