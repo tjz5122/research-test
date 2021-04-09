@@ -152,7 +152,7 @@ class Bucket(object):
 class SSM(SSM_Optimizer):
 
     def __init__(self, params, lr=-1, momentum=0, weight_decay=0, 
-                 drop_factor=10, significance=0.05, tolerance = 0.01, var_mode='mb',
+                 drop_factor=10, significance=0.05, tolerance = 0.01, var_mode='bm',
                  leak_ratio=8, minN_stats=100, testfreq=100, samplefreq = 10, mode='loss_plus_smooth'):
 
         if lr <= 0:
@@ -165,8 +165,8 @@ class SSM(SSM_Optimizer):
             raise ValueError("Invalid value for drop_factor (>=1): {}".format(drop_factor))
         if significance <= 0 or significance >= 1:
             raise ValueError("Invalid value for significance (0,1): {}".format(significance))
-        if var_mode not in ['mb', 'olbm', 'iid']:
-            raise ValueError("Invalid value for var_mode ('mb', 'olmb', or 'iid'): {}".format(var_mode))
+        if var_mode not in ['bm', 'olbm', 'iid']:
+            raise ValueError("Invalid value for var_mode ('bm', 'olmb', or 'iid'): {}".format(var_mode))
         if leak_ratio < 1:
             raise ValueError("Invalid value for leak_ratio (int, >=1): {}".format(leak_ratio))
         # if minN_stats < 100:
