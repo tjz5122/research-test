@@ -516,7 +516,7 @@ def get_args():
     
     parser.add_argument('--samplefreq', '--sf', metavar='samplefreq', default=10, type=int, help='sampling frequency (default: 10)')
 
-    parser.add_argument('--varmode', '--vm', metavar='variance_mode', default="mb", type=str, help='variance mode (default: mb)')
+    parser.add_argument('--varmode', '--vm', metavar='variance_mode', default="bm", type=str, help='variance mode (default: bm)')
     
     parser.add_argument('--keymode', '--km', metavar='key_mode', default="loss_plus_smooth", type=str, help='key mode (default: loss_plus_smooth')
     
