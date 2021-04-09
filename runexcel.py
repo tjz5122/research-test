@@ -4,6 +4,7 @@ import subprocess
 import threading
 import signal
 from itertools import product
+from openpyxl import Workbook
 
 
 def run_command(env):
@@ -18,6 +19,34 @@ def run_command(env):
         proc = subprocess.Popen(comm, env=env)
         proc.wait()
 
+
+wb = Workbook()
+ws = wb.active
+ws.title = "SSM result"
+ws['A1'] = "count"
+ws['B1'] = "network"
+ws['C1'] = "channel"
+ws['D1'] = "iteration"
+ws['E1'] = "dataset"
+ws['F1'] = "epoch"
+ws['G1'] = "lr"
+ws['H1'] = "wd"
+ws['I1'] = "momentum"
+ws['J1'] = "batchsize"
+ws['K1'] = "truncate"
+ws['L1'] = "significance"
+ws['M1'] = "minstat"
+ws['N1'] = "varmode"
+ws['O1'] = "keymode"
+ws['P1'] = "trail"
+
+ws['Q1'] = "samplefreq"
+ws['R1'] = "samplefreq"
+ws['S1'] = "samplefreq"
+ws['T1'] = "samplefreq"
+
+
+c = ws.cell(row=4, column=2, value=10)
 
 test_param_groups = {}
 test_param_groups["lr_group"] = [10.0,1.0,0.1]
