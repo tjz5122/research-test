@@ -766,6 +766,5 @@ def main():
     f.write("total_time = {}\n".format(str(end - start)))
     f.close()
 
-if __name__ == '__main__':
-    main()
+main()
 
