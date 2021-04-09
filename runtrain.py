@@ -34,7 +34,7 @@ test_param_groups["net_group"] = ["resnet18","mgnet"]
 chosen_param_groups = ["wd_group","trail_group"]
 value_list = [test_param_groups[group] for group in chosen_param_groups]
 test_list = list(product(*value_list))
-command = 'python trainmain.py --cuda --net=resnet18 --ch=256 --iter=2222 --data cifar10 --epochs=120 --lr=1 -b=128 -m=0.8 --wd={} --km loss_plus_smooth --vm mb --minstat=100 --sf=100 --trun=0.02 --sig=0.05 --trail={}'
+command = 'python trainmain.py --cuda --net=resnet18 --ch=256 --iter=2222 --data cifar10 --epochs=120 --lr=1 -b=128 -m=0.8 --wd={} --km loss_plus_smooth --vm bm --minstat=100 --sf=100 --trun=0.02 --sig=0.05 --trail={}'
 # flexible
 
 
