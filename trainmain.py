@@ -538,10 +538,10 @@ def main():
     args = get_args()  # get the arguments
 
     if args.net == "mgnet":
-        args.name = '{}{}{},ds={},ep={},lr={},wd={},m={},bs={},trun={},sig={},minstat={},samplefreq={},var={},key={},t={}'
-        args.name = args.name.format(args.iter,
-                                     args.net,
+        args.name = 'net={},ch={},iter={},ds={},ep={},lr={},wd={},m={},bs={},trun={},sig={},minstat={},samplefreq={},var={},key={},t={}'
+        args.name = args.name.format(args.net,
                                      args.ch,
+                                     args.iter,
                                      args.data,
                                      args.epochs,
                                      args.lr,
@@ -557,9 +557,9 @@ def main():
                                      args.trail
                                      )
     if args.net == "resnet18":
-        args.name = '{}{},ds={},ep={},lr={},wd={},m={},bs={},trun={},sig={},minstat={},samplefreq={},var={},key={},t={}'
-        args.name = args.name.format(args.iter,
-                                     args.net,
+        args.name = 'net={},iter={},ds={},ep={},lr={},wd={},m={},bs={},trun={},sig={},minstat={},samplefreq={},var={},key={},t={}'
+        args.name = args.name.format(args.net,
+                                     args.iter,
                                      args.data,
                                      args.epochs,
                                      args.lr,
@@ -722,10 +722,10 @@ def main():
     # example of files for training  
     f = open(training_file_name, 'w')
     if args.net == "mgnet":
-        f.write('{}{}{},ds={},ep={},lr={},wd={},m={},bs={},trun={},sig={},minstat={},samplefreq={},var={},key={},t={}'.format(
-                                 args.iter,
+        f.write('net={},ch={},iter={},ds={},ep={},lr={},wd={},m={},bs={},trun={},sig={},minstat={},samplefreq={},var={},key={},t={}'.format(
                                  args.net,
                                  args.ch,
+                                 args.iter,
                                  args.data,
                                  args.epochs,
                                  args.lr,
@@ -740,9 +740,9 @@ def main():
                                  args.keymode,
                                  args.trail))
     if args.net == "resnet18":
-        f.write('{}{},ds={},ep={},lr={},wd={},m={},bs={},trun={},sig={},minstat={},samplefreq={},var={},key={},t={}'.format(
-                                 args.iter,
+        f.write('net={},iter={},ds={},ep={},lr={},wd={},m={},bs={},trun={},sig={},minstat={},samplefreq={},var={},key={},t={}'.format(
                                  args.net,
+                                 args.iter,
                                  args.data,
                                  args.epochs,
                                  args.lr,
