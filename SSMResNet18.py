@@ -155,7 +155,7 @@ class Bucket(object):
 
         return mean, std, dof
 
-    def stats_test(self, sigma, tolerance, mode='bm',step_test=1,truncate=0.02):
+    def stats_test(self, sigma, tolerance, mode='mb',step_test=1,truncate=0.02):
         mean, std, dof = self.mean_std(mode=mode)
 
         # confidence interval
