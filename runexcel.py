@@ -37,7 +37,7 @@ test_list = list(product(*value_list))
 for i in range(len(test_list)):
     test_list[i] = tuple(list(test_list[i]) + [i+1])
 
-command = 'python trainmain.py --cuda --net=resnet18 --ch=256 --iter=2222 --data cifar10 --epochs=120 --lr=1 -b=128 -m=0.8 --wd={} --km loss_plus_smooth --vm bm --minstat=100 --sf=100 --trun=0.02 --sig=0.05 --trail={} --count={}'
+command = 'python trainexcel.py --cuda --net=resnet18 --ch=256 --iter=2222 --data cifar10 --epochs=120 --lr=1 -b=128 -m=0.8 --wd={} --km loss_plus_smooth --vm bm --minstat=100 --sf=100 --trun=0.02 --sig=0.05 --trail={} --count={}'
 # flexible
 
 
