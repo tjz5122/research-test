@@ -142,7 +142,7 @@ class Bucket(object):
         # confidence interval
         t_sigma_dof = stats.t.ppf(1-sigma/2., dof)
         self.statistic = std * t_sigma_dof / math.sqrt(self.count)
-        
+        print(self.statistic)
         if step_test != 0:
             self.statistic -= truncate
             
@@ -577,7 +577,6 @@ def main():
     #implementation
     minibatch_size = args.batch_size
     num_epochs =  args.epochs
-    lr = args.lr
     degree = args.ch
     if args.data == 'cifar10' or 'cifar100':
         num_channel_input = 3 # since cifar10
@@ -630,7 +629,7 @@ def main():
         testloader = torch.utils.data.DataLoader(testset, batch_size=minibatch_size, shuffle=False)
     
     
-    optimizer = SSM(my_model.parameters(), lr, weight_decay=args.weight_decay, momentum=args.momentum, testfreq=len(trainloader), var_mode=args.varmode, minN_stats=args.minstat, mode=args.keymode, samplefreq=args.samplefreq, significance=args.sig)
+    optimizer = SSM(my_model.parameters(), lr=args.lr, weight_decay=args.weight_decay, momentum=args.momentum, testfreq=len(trainloader), var_mode=args.varmode, minN_stats=args.minstat, mode=args.keymode, samplefreq=args.samplefreq, significance=args.sig)
     
     train_accuracy_list = []
     test_accuracy_list = []
