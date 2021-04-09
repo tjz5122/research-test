@@ -740,7 +740,7 @@ def main():
                                  args.keymode,
                                  args.trail))
     if args.net == "resnet18":
-        f.write('net={},iter={},ds={},ep={},lr={},wd={},m={},bs={},trun={},sig={},minstat={},samplefreq={},var={},key={},t={}'.format(
+        f.write('net={},iter={},ds={},ep={},lr={},wd={},m={},bs={},trun={},sig={},minstat={},samplefreq={},var={},key={},t={}\n'.format(
                                  args.net,
                                  args.iter,
                                  args.data,
