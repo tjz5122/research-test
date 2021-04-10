@@ -36,14 +36,15 @@ ws['J1'] = "batchsize"
 ws['K1'] = "truncate"
 ws['L1'] = "significance"
 ws['M1'] = "minstat"
-ws['N1'] = "varmode"
-ws['O1'] = "keymode"
-ws['P1'] = "trail"
+ws['N1'] = "samplefreq"
+ws['O1'] = "varmode"
+ws['P1'] = "keymode"
+ws['Q1'] = "trail"
 
-ws['Q1'] = "samplefreq"
-ws['R1'] = "samplefreq"
-ws['S1'] = "samplefreq"
-ws['T1'] = "samplefreq"
+
+ws['R1'] = "testaccu"
+ws['S1'] = "totaltime"
+ws['T1'] = "convergence"
 
 
 c = ws.cell(row=4, column=2, value=10)
