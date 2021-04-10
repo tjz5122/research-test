@@ -497,13 +497,11 @@ def get_args():
     parser.add_argument('--name', default='result', type=str, help='the path to save the result')
 
     # For trail control
-    parser.add_argument('--trail', default=1, type=int, help='trail of the same params.')
-    
-    parser.add_argument('--count', default=1, type=int, help='count of the experiment number.')
+    parser.add_argument('--trail', default='0', type=str, help='trail of the same params.')
 
     # For methods    
     parser.add_argument('--epochs', type=int, help='epoch number', default=120)
-
+    
     parser.add_argument('-b', '--batch-size', default=128, type=int, metavar='N', help='mini_batch size (default: 128)')
     
     parser.add_argument('--lr', '--learning-rate', default=1.0, type=float, metavar='LR', help='initial learning rate')
@@ -516,6 +514,8 @@ def get_args():
     
     parser.add_argument('--sig', metavar='significance', default=0.05, type=float,  help='significance level (default: 0.05)')
     
+    parser.add_argument('--lk', metavar='leak ratio', default=8, type=int,  help='leak ratio (default: 8)')
+
     parser.add_argument('--minstat', metavar='minstat', default=100, type=int, help='mini-stat (default: 100)')
     
     parser.add_argument('--samplefreq', '--sf', metavar='samplefreq', default=10, type=int, help='sampling frequency (default: 10)')
@@ -524,7 +524,7 @@ def get_args():
     
     parser.add_argument('--keymode', '--km', metavar='key_mode', default="loss_plus_smooth", type=str, help='key mode (default: loss_plus_smooth')
     
-
+    
     # For Data    
     parser.add_argument('--data', type=str, help='cifar10, cifar100 or mnist', default='cifar10')
     
@@ -542,7 +542,7 @@ def main():
     args = get_args()  # get the arguments
 
     if args.net == "mgnet":
-        args.name = 'net={},ch={},iter={},ds={},ep={},lr={},wd={},m={},bs={},trun={},sig={},minstat={},samplefreq={},var={},key={},t={}'
+        args.name = 'net={},ch={},iter={},ds={},ep={},lr={},wd={},m={},bs={},trun={},sig={},lk={},minstat={},samplefreq={},var={},key={},t={}'
         args.name = args.name.format(args.net,
                                      args.ch,
                                      args.iter,
@@ -554,6 +554,7 @@ def main():
                                      args.batch_size,
                                      args.trun,
                                      args.sig,
+                                     args.lk,
                                      args.minstat,
                                      args.samplefreq,
                                      args.varmode,
@@ -561,7 +562,7 @@ def main():
                                      args.trail
                                      )
     if args.net == "resnet18":
-        args.name = 'net={},iter={},ds={},ep={},lr={},wd={},m={},bs={},trun={},sig={},minstat={},samplefreq={},var={},key={},t={}'
+        args.name = 'net={},iter={},ds={},ep={},lr={},wd={},m={},bs={},trun={},sig={},lk={},minstat={},samplefreq={},var={},key={},t={}'
         args.name = args.name.format(args.net,
                                      args.iter,
                                      args.data,
@@ -572,6 +573,7 @@ def main():
                                      args.batch_size,
                                      args.trun,
                                      args.sig,
+                                     args.lk,
                                      args.minstat,
                                      args.samplefreq,
                                      args.varmode,
@@ -633,7 +635,7 @@ def main():
         testloader = torch.utils.data.DataLoader(testset, batch_size=minibatch_size, shuffle=False)
     
     
-    optimizer = SSM(my_model.parameters(), lr=args.lr, weight_decay=args.weight_decay, momentum=args.momentum, testfreq=len(trainloader), var_mode=args.varmode, minN_stats=args.minstat, mode=args.keymode, samplefreq=args.samplefreq, significance=args.sig)
+    optimizer = SSM(my_model.parameters(), lr=args.lr, weight_decay=args.weight_decay, momentum=args.momentum, testfreq=len(trainloader), var_mode=args.varmode, leak_ratio=args.lk, minN_stats=args.minstat, mode=args.keymode, samplefreq=args.samplefreq, significance=args.sig)
     
     train_accuracy_list = []
     test_accuracy_list = []
@@ -713,12 +715,13 @@ def main():
         epoch_end_time = timer()
         epoch_time_list.append(epoch_end_time - epoch_start_time)
     end = timer()
-    total_time = end - start
+    
     
     print("complete")
     
     convergence = 0
-    arglist = [args.net,args.ch,args.iter,args.data,args.epochs,args.lr,args.weight_decay,args.momentum,args.batch_size,args.trun,args.sig,args.minstat,args.samplefreq,args.varmode,args.keymode,test_accuracy_list[-1],total_time,convergence]
+    total_time = end - start
+    arglist = [args.count,args.net,args.ch,args.iter,args.data,args.epochs,args.lr,args.weight_decay,args.momentum,args.batch_size,args.trun,args.sig,args.lk,args.minstat,args.samplefreq,args.varmode,args.keymode,args.trail,test_accuracy_list[-1],total_time,convergence,avg_loss_list[-1]]
     wb = load_workbook('SSMtestdata.xlsx')
     ws = wb.active
 
