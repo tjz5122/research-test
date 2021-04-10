@@ -722,8 +722,8 @@ def main():
     wb = load_workbook('SSMtestdata.xlsx')
     ws = wb.active
 
-    for col in range(len(arglist)):
-        ws.cell(row=args.count+1, column=col+1, value=arglist[col+1])
+    for col in range(1,len(arglist)+1):
+        ws.cell(row=args.count+1, column=col, value=arglist[col-1])
     wb.save('SSMtestdata.xlsx')
         
 main()
