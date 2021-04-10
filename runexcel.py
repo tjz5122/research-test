@@ -41,11 +41,9 @@ ws['O1'] = "varmode"
 ws['P1'] = "keymode"
 ws['Q1'] = "trail"
 
-
 ws['R1'] = "testaccu"
 ws['S1'] = "totaltime"
 ws['T1'] = "convergence"
-
 wb.save('SSMtestdata.xlsx')
 
 test_param_groups = {}
