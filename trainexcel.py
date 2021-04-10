@@ -1,10 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Fri Apr  9 19:28:18 2021
-
-@author: thzha
-"""
-
 import math
 import torch
 import torch.nn as nn
@@ -15,6 +8,8 @@ import numpy as np
 import torchvision
 from timeit import default_timer as timer
 import argparse
+from openpyxl import load_workbook
+
 
 class SSM_Optimizer(Optimizer):
 
@@ -503,8 +498,7 @@ def get_args():
 
     # For trail control
     parser.add_argument('--trail', default='0', type=str, help='trail of the same params.')
-    
-    parser.add_argument('--count', default='0', type=str, help='count for the total experiments')
+
     # For methods    
     parser.add_argument('--epochs', type=int, help='epoch number', default=120)
 
@@ -717,64 +711,18 @@ def main():
         epoch_end_time = timer()
         epoch_time_list.append(epoch_end_time - epoch_start_time)
     end = timer()
-    
+    total_time = end - start
     
     print("complete")
-        
-    # file name
-    training_file_name = args.name + '.train'
-    validation_file_name = args.name + '.validate'
-    lr_file_name = args.name + '.lr'
+    
+    convergence = 0
+    arglist = [args.net,args.ch,args.iter,args.data,args.epochs,args.lr,args.weight_decay,args.momentum,args.batch_size,args.trun,args.sig,args.minstat,args.samplefreq,args.varmode,args.keymode,test_accuracy_list[-1],total_time,convergence]
+    wb = load_workbook('SSMtestdata.xlsx')
+    ws = wb.active
 
-    # example of files for training  
-    f = open(training_file_name, 'w')
-    if args.net == "mgnet":
-        f.write('net={},ch={},iter={},ds={},ep={},lr={},wd={},m={},bs={},trun={},sig={},minstat={},samplefreq={},var={},key={},t={}'.format(
-                                 args.net,
-                                 args.ch,
-                                 args.iter,
-                                 args.data,
-                                 args.epochs,
-                                 args.lr,
-                                 args.weight_decay,
-                                 args.momentum,
-                                 args.batch_size,
-                                 args.trun,
-                                 args.sig,
-                                 args.minstat,
-                                 args.samplefreq,
-                                 args.varmode,
-                                 args.keymode,
-                                 args.trail))
-    if args.net == "resnet18":
-        f.write('net={},iter={},ds={},ep={},lr={},wd={},m={},bs={},trun={},sig={},minstat={},samplefreq={},var={},key={},t={}\n'.format(
-                                 args.net,
-                                 args.iter,
-                                 args.data,
-                                 args.epochs,
-                                 args.lr,
-                                 args.weight_decay,
-                                 args.momentum,
-                                 args.batch_size,
-                                 args.trun,
-                                 args.sig,
-                                 args.minstat,
-                                 args.samplefreq,
-                                 args.varmode,
-                                 args.keymode,
-                                 args.trail))
+    for col in range(len(arglist)):
+        ws.cell(row=args.count+1, column=col+1, value=arglist[col+1])
+    wb.save('SSMtestdata.xlsx')
         
-        
-    count = args.count
-    f.write("train_accuracy_list = {}\n".format(str(train_accuracy_list)))
-    f.write("test_accuracy_list = {}\n".format(str(test_accuracy_list)))
-    f.write("lr_list = {}\n".format("np.log10(array(" + str(lr_list) + "))"))
-    f.write("statistic_list = {}\n".format(str(statistic_list)))
-    f.write("key_list = {}\n".format("array(" + str(key_list) + ")"))
-    f.write("avg_loss_list = {}\n".format(str(avg_loss_list)))
-    f.write("epoch_time_list = {}\n".format(str(epoch_time_list)))
-    f.write("total_time = {}\n".format(str(end - start)))
-    f.close()
-
 main()
 
