@@ -35,15 +35,16 @@ ws['I1'] = "momentum"
 ws['J1'] = "batchsize"
 ws['K1'] = "truncate"
 ws['L1'] = "significance"
-ws['M1'] = "minstat"
-ws['N1'] = "samplefreq"
-ws['O1'] = "varmode"
-ws['P1'] = "keymode"
-ws['Q1'] = "trail"
+ws['M1'] = "leakyratio"
+ws['N1'] = "minstat"
+ws['O1'] = "samplefreq"
+ws['P1'] = "varmode"
+ws['Q1'] = "keymode"
 
-ws['R1'] = "testaccu"
-ws['S1'] = "totaltime"
-ws['T1'] = "convergence"
+ws['R1'] = "trail"
+ws['S1'] = "testaccu"
+ws['T1'] = "totaltime"
+ws['U1'] = "convergence"
 wb.save('SSMtestdata.xlsx')
 
 test_param_groups = {}
@@ -54,7 +55,7 @@ test_param_groups["batch_size_group"] = [128,256]
 test_param_groups["data_group"] = ["cifar10","cifar100"]
 test_param_groups["epochs_group"] = [120,240,360]
 test_param_groups["net_group"] = ["resnet18","mgnet"]
-
+test_param_groups["leaky_ratio"] = [2,5,8]
 
 
 # flexible
@@ -64,7 +65,7 @@ test_list = list(product(*value_list))
 for i in range(len(test_list)):
     test_list[i] = tuple(list(test_list[i]) + [i+1])
 
-command = 'python trainexcel.py --cuda --net=resnet18 --ch=256 --iter=2222 --data cifar10 --epochs=120 --lr=1 -b=128 -m=0.8 --wd={} --km loss_plus_smooth --vm bm --minstat=100 --sf=10 --trun=0.02 --sig=0.05 --trail={} --count={}'
+command = 'python trainexcel.py --cuda --net=resnet18 --ch=256 --iter=2222 --data cifar10 --epochs=120 --lr=1 -b=128 -m=0.8 --wd={} --km loss_plus_smooth --vm bm --lk=8 --minstat=100 --sf=10 --trun=0.02 --sig=0.05 --trail={} --count={}'
 # flexible
 
 
