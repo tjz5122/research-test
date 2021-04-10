@@ -40,11 +40,12 @@ ws['N1'] = "minstat"
 ws['O1'] = "samplefreq"
 ws['P1'] = "varmode"
 ws['Q1'] = "keymode"
-
 ws['R1'] = "trail"
+
 ws['S1'] = "testaccu"
 ws['T1'] = "totaltime"
 ws['U1'] = "convergence"
+ws['V1'] = "loss"
 wb.save('SSMtestdata.xlsx')
 
 test_param_groups = {}
