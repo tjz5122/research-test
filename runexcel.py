@@ -46,8 +46,7 @@ ws['R1'] = "testaccu"
 ws['S1'] = "totaltime"
 ws['T1'] = "convergence"
 
-
-c = ws.cell(row=4, column=2, value=10)
+wb.save('SSMtestdata.xlsx')
 
 test_param_groups = {}
 test_param_groups["lr_group"] = [10.0,1.0,0.1]
