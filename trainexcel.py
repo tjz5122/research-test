@@ -724,7 +724,7 @@ def main():
 
     for col in range(1,len(arglist)+1):
         ws.cell(row=args.count+1, column=col, value=arglist[col-1])
-    wb.save('SSMtestdata.xlsx')
+    wb.save(filename = 'SSMtestdata.xlsx')
         
 main()
 
