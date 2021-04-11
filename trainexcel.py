@@ -723,6 +723,7 @@ def main():
     total_time = end - start
     arglist = [args.count,args.net,args.ch,args.iter,args.data,args.epochs,args.lr,args.weight_decay,args.momentum,args.batch_size,args.trun,args.sig,args.lk,args.minstat,args.samplefreq,args.varmode,args.keymode,args.trail,test_accuracy_list[-1],total_time,convergence,avg_loss_list[-1]]
     wb = load_workbook('SSMtestdata.xlsx')
+    wb.encoding = "utf-8"
     ws = wb.active
 
     for col in range(1,len(arglist)+1):
