@@ -21,6 +21,7 @@ def run_command(env):
 
 
 wb = Workbook()
+wb.encoding = "utf-8"
 ws = wb.active
 ws.title = "SSM result"
 ws['A1'] = "count"
