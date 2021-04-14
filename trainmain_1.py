@@ -748,8 +748,7 @@ def main():
                              args.trail,
                              test_accuracy_list[-1],
                              avg_loss_list[-1],
-                             end - start
-                             ))
+                             end - start))
 
     f.write("train_accuracy_list = {}\n".format(str(train_accuracy_list)))
     f.write("test_accuracy_list = {}\n".format(str(test_accuracy_list)))
