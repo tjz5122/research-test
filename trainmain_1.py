@@ -605,12 +605,12 @@ def main():
     avg_loss_list = []
     key_list = []
     epoch_time_list = []
+    decrease_record = []
     
     start = timer()
     #Step 4: Train the NNs
     # One epoch is when an entire dataset is passed through the neural network only once.
     for epoch in range(num_epochs):
-        epoch_start_time = timer()
         running_loss = 0
         my_model.train()
         for i, (images, labels) in enumerate(trainloader):
@@ -669,25 +669,39 @@ def main():
               correct += (predicted == labels).sum()
         test_accuracy = float(correct)/total
         test_accuracy_list.append(test_accuracy)
-        statistic_list.append(optimizer.state['statistic'])
-        key_list.append(tuple([optimizer.state['stats_val'],optimizer.state['loss'],optimizer.state['smoothing']]))
         current_lr = optimizer.state['lr']
-        lr_list.append(current_lr)
-        epoch_end_time = timer()
-        epoch_time_list.append(epoch_end_time - epoch_start_time)
+        if optimizer.state['stats_stationary'] == 1:
+            decrease_record.append((epoch,test_accuracy,running_loss))
+            
+        
     end = timer()
     
     decrease_time = np.log10(args.lr/current_lr)
     
     print("complete")
+    
+    if len(decrease_record) == 0:
+        e1,a1,l1,e2,a2,l2,e3,a3,l3,e4,a4,l4= [0,0,0,0,0,0,0,0,0,0,0,0]; 
+    elif len(decrease_record) == 1:
+        e1,a1,l1 = decrease_record[0]; e2,a2,l2,e3,a3,l3,e4,a4,l4 = [0,0,0,0,0,0,0,0,0]
+    elif len(decrease_record) == 2:
+        e1,a1,l1 = decrease_record[0]; e2,a2,l2 = decrease_record[1]; e3,a3,l3,e4,a4,l4 = [0,0,0,0,0,0]
+    elif len(decrease_record) == 3:
+        e1,a1,l1 = decrease_record[0]; e2,a2,l2 = decrease_record[1]; e3,a3,l3 = decrease_record[2]; e4,a4,l4 = [0,0,0]
+    else:
+        e1,a1,l1 = decrease_record[0]; e2,a2,l2 = decrease_record[1]; e3,a3,l3 = decrease_record[2]; e4,a4,l4 = decrease_record[3]
         
 
-
+    
+    final_train_accuracy = train_accuracy_list[-1]
+    final_test_accuracy = test_accuracy_list[-1]
+    final_avg_loss = avg_loss_list[-1]
+    total_time = end - start
     # example of files for training  
     f = open("SSM_training_data", 'a')
     if args.net == "resnet18":
         args.ch = 0
-    f.write('{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}\n'.format(
+    f.write('{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}\n'.format(
                              args.count,
                              args.net,
                              args.ch,
@@ -707,10 +721,22 @@ def main():
                              args.keymode,
                              args.trail,
                              decrease_time,
-                             train_accuracy_list[-1],
-                             test_accuracy_list[-1],
-                             avg_loss_list[-1],
-                             end - start))
+                             e1,
+                             a1,
+                             l1,
+                             e2,
+                             a2,
+                             l2,
+                             e3,
+                             a3,
+                             l3,
+                             e4,
+                             a4,
+                             l4,
+                             final_train_accuracy,
+                             final_test_accuracy,
+                             final_avg_loss,
+                             total_time))
 
     f.close()
 
