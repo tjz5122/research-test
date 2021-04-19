@@ -728,7 +728,7 @@ def main():
     f = open(training_file_name, 'w')
     if args.net == "resnet18":
         args.ch = 0
-    f.write('{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}'.format(
+    f.write('{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}\n'.format(
                              args.net,
                              args.ch,
                              args.iter,
