@@ -5,7 +5,7 @@ import threading
 import signal
 from itertools import product
 
-f = open(SSM_training_data, 'w')
+f = open("SSM_training_data", 'w')
 f.close()
 
 def run_command(env):
