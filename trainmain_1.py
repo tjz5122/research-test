@@ -684,7 +684,7 @@ def main():
 
 
     # example of files for training  
-    f = open(SSM_training_data, 'a')
+    f = open("SSM_training_data", 'a')
     if args.net == "resnet18":
         args.ch = 0
     f.write('{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}\n'.format(
