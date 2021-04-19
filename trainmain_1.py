@@ -541,45 +541,6 @@ def get_args():
 def main():
     args = get_args()  # get the arguments
 
-    if args.net == "mgnet":
-        args.name = 'net={},ch={},iter={},ds={},ep={},lr={},wd={},m={},bs={},trun={},sig={},lk={},minstat={},samplefreq={},var={},key={},t={}'
-        args.name = args.name.format(args.net,
-                                     args.ch,
-                                     args.iter,
-                                     args.data,
-                                     args.epochs,
-                                     args.lr,
-                                     args.weight_decay,
-                                     args.momentum,
-                                     args.batch_size,
-                                     args.trun,
-                                     args.sig,
-                                     args.lk,
-                                     args.minstat,
-                                     args.samplefreq,
-                                     args.varmode,
-                                     args.keymode,
-                                     args.trail
-                                     )
-    if args.net == "resnet18":
-        args.name = 'net={},iter={},ds={},ep={},lr={},wd={},m={},bs={},trun={},sig={},lk={},minstat={},samplefreq={},var={},key={},t={}'
-        args.name = args.name.format(args.net,
-                                     args.iter,
-                                     args.data,
-                                     args.epochs,
-                                     args.lr,
-                                     args.weight_decay,
-                                     args.momentum,
-                                     args.batch_size,
-                                     args.trun,
-                                     args.sig,
-                                     args.lk,
-                                     args.minstat,
-                                     args.samplefreq,
-                                     args.varmode,
-                                     args.keymode,
-                                     args.trail
-                                     )
     #implementation
     minibatch_size = args.batch_size
     num_epochs =  args.epochs
@@ -716,19 +677,18 @@ def main():
         epoch_time_list.append(epoch_end_time - epoch_start_time)
     end = timer()
     
+    decrease_time = np.log10(args.lr/current_lr)
     
     print("complete")
         
-    # file name
-    training_file_name = args.name + '.train'
-    validation_file_name = args.name + '.validate'
-    lr_file_name = args.name + '.lr'
+
 
     # example of files for training  
-    f = open(training_file_name, 'w')
+    f = open(SSM_training_data, 'a')
     if args.net == "resnet18":
         args.ch = 0
-    f.write('{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}\n'.format(
+    f.write('{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}\n'.format(
+                             args.count,
                              args.net,
                              args.ch,
                              args.iter,
@@ -746,18 +706,12 @@ def main():
                              args.varmode,
                              args.keymode,
                              args.trail,
+                             decrease_time,
+                             train_accuracy_list[-1],
                              test_accuracy_list[-1],
                              avg_loss_list[-1],
                              end - start))
 
-    f.write("train_accuracy_list = {}\n".format(str(train_accuracy_list)))
-    f.write("test_accuracy_list = {}\n".format(str(test_accuracy_list)))
-    f.write("lr_list = {}\n".format("np.log10(array(" + str(lr_list) + "))"))
-    f.write("statistic_list = {}\n".format(str(statistic_list)))
-    f.write("key_list = {}\n".format("array(" + str(key_list) + ")"))
-    f.write("avg_loss_list = {}\n".format(str(avg_loss_list)))
-    f.write("epoch_time_list = {}\n".format(str(epoch_time_list)))
-    f.write("total_time = {}\n".format(str(end - start)))
     f.close()
 
 main()
