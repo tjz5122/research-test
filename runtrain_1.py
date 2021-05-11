@@ -44,10 +44,10 @@ test_param_groups["data_group"] = ["cifar10","cifar100"]
 
 
 # flexible
-chosen_param_groups = ["channel_group","iteration_group","batch_size_group","momentum_group","wd_group","keymode_group","varmode_group","leaky_group","ministate_group","samplefreq_group","truncate_group","trail_group"]
+chosen_param_groups = ["channel_group","batch_size_group","momentum_group","wd_group","keymode_group","varmode_group","leaky_group","ministate_group","samplefreq_group","truncate_group","trail_group"]
 value_list = [test_param_groups[group] for group in chosen_param_groups]
 test_list = list(product(*value_list))
-command = 'python trainmain_1.py --cuda --net=mgnet --ch={} --iter={} --data=cifar10 --epochs=360 --lr=1 -b={} -m={} --wd={} --km={} --vm={} --lk={} --minstat={} --sf={} --trun={} --sig=0.05 --trail={}'
+command = 'python trainmain_1.py --cuda --net=mgnet --ch={} --iter=2222 --data=cifar10 --epochs=360 --lr=1 -b={} -m={} --wd={} --km={} --vm={} --lk={} --minstat={} --sf={} --trun={} --sig=0.05 --trail={}'
 # flexible
 
 
