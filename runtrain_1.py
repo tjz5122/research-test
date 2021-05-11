@@ -22,7 +22,7 @@ def run_command(env):
 
 
 test_param_groups = {}
-test_param_groups["channel_group"] = [64,128,256]
+test_param_groups["channel_group"] = [128,256]
 test_param_groups["iteration_group"] = ["2111","2222"]
 test_param_groups["lr_group"] = [1.0,0.1]
 test_param_groups["wd_group"] = [0.0001,0.0005,0.001]
