@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import os
 import shlex
 import subprocess
@@ -23,22 +24,22 @@ def run_command(env):
 
 test_param_groups = {}
 test_param_groups["channel_group"] = [128,256]
-test_param_groups["iteration_group"] = ["2111","2222"]
-test_param_groups["lr_group"] = [1.0,0.1]
+test_param_groups["iteration_group"] = ["2222"]
+test_param_groups["lr_group"] = [1.0]
 test_param_groups["wd_group"] = [0.0001,0.0005,0.001]
 test_param_groups["trail_group"] = [1,2]
-test_param_groups["batch_size_group"] = [64,128,256]
-test_param_groups["epochs_group"] = [120,240,360]
-test_param_groups["net_group"] = ["resnet18","mgnet"]
-test_param_groups["leaky_group"] = [4,8,10]
+test_param_groups["batch_size_group"] = [128,256]
+test_param_groups["epochs_group"] = [240]
+test_param_groups["net_group"] = ["mgnet"]
+test_param_groups["leaky_group"] = [4,8,12]
 test_param_groups["momentum_group"] = [0.6,0.8]
-test_param_groups["significance_group"] = [0.01,0.05,0.1]
+test_param_groups["significance_group"] = [0.05,0.1]
 test_param_groups["samplefreq_group"] = [5,10,15]
-test_param_groups["truncate_group"] = [0.01,0.02,0.03]
-test_param_groups["ministate_group"] = [50,100,150]
-test_param_groups["keymode_group"] = ["loss_plus_smooth","loss"]
-test_param_groups["varmode_group"] = ["bm","olbm"]
-test_param_groups["data_group"] = ["cifar10","cifar100"]
+test_param_groups["truncate_group"] = [0.02,0.03]
+test_param_groups["ministate_group"] = [50,100]
+test_param_groups["keymode_group"] = ["loss_plus_smooth"]
+test_param_groups["varmode_group"] = ["bm"]
+test_param_groups["data_group"] = ["cifar10"]
 
 
 
@@ -65,3 +66,5 @@ for c in ids_cuda:
     env['CUDA_VISIBLE_DEVICES'] = str(c)
     thread = threading.Thread(target = run_command, args = (env, ))
     thread.start()
+
+
