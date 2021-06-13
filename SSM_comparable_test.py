@@ -29,7 +29,7 @@ test_param_groups["lr_group"] = [1.0]
 test_param_groups["wd_group"] = [0.0001,0.0005,0.001]
 test_param_groups["trail_group"] = [1,2,3]
 test_param_groups["drop_factor_group"] = [2,5,10] #SASA+
-test_param_groups["batch_size_group"] = [128,256]
+test_param_groups["batch_size_group"] = [128]
 test_param_groups["epochs_group"] = [240]
 test_param_groups["net_group"] = ["mgnet"]
 test_param_groups["leaky_group"] = [2,4,8,16]     #SASA+
@@ -40,7 +40,7 @@ test_param_groups["truncate_group"] = [0.02,0.03]
 test_param_groups["ministate_group"] = [50,100]
 test_param_groups["keymode_group"] = ["loss_plus_smooth"]
 test_param_groups["varmode_group"] = ["bm"]
-test_param_groups["data_group"] = ["cifar10","cifar100"]
+test_param_groups["data_group"] = ["cifar10"]
 
 
 
