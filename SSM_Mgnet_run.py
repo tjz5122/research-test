@@ -5,7 +5,7 @@ import threading
 import signal
 from itertools import product
 
-f = open("SSM_Mgnet_traindata", 'w')
+f = open("SSM_Mgnet_data", 'w')
 f.close()
 
 def run_command(env):
