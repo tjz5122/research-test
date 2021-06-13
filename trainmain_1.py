@@ -506,6 +506,8 @@ def get_args():
     
     parser.add_argument('--lr', '--learning-rate', default=1.0, type=float, metavar='LR', help='initial learning rate')
     
+    parser.add_argument('--drop', default = 10, type=int, help='learning rate drop factor')
+    
     parser.add_argument('-m', '--momentum', default=0.8, type=float, metavar='M', help='momentum')
     
     parser.add_argument('--weight-decay', '--wd', default=5e-4, type=float, metavar='W', help='weight decay (e.g. 5e-4)')
@@ -701,7 +703,7 @@ def main():
     f = open("SSM_training_data", 'a')
     if args.net == "resnet18":
         args.ch = 0
-    f.write('{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}\n'.format(
+    f.write('{},{},{},{},{},{},{},{},{},{},,{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}\n'.format(
                              args.count,
                              args.net,
                              args.ch,
@@ -713,6 +715,7 @@ def main():
                              args.momentum,
                              args.batch_size,
                              args.trun,
+                             args.drop,
                              args.sig,
                              args.lk,
                              args.minstat,
