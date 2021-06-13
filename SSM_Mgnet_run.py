@@ -47,7 +47,7 @@ test_param_groups["data_group"] = ["cifar10"]
 chosen_param_groups = ["channel_group","iteration_group","lr_group","wd_group","trail_group","drop_factor_group","batch_size_group","epochs_group","leaky_group","momentum_group","significance_group","samplefreq_group","truncate_group","ministate_group","keymode_group","varmode_group","data_group"]
 value_list = [test_param_groups[group] for group in chosen_param_groups]
 test_list = list(product(*value_list))
-command = 'python trainmain_1.py --cuda --ch={} --iter={} --lr={} --wd={} --trail={} --drop={} -b={} --epochs={} --lk={} -m={} --sig={} --sf={} --trun={} --minstat={} --km={} --vm={} --data={}'
+command = 'python SSM_Mgnet_train.py --cuda --ch={} --iter={} --lr={} --wd={} --trail={} --drop={} -b={} --epochs={} --lk={} -m={} --sig={} --sf={} --trun={} --minstat={} --km={} --vm={} --data={}'
 # flexible
 
 print("the total combinations of hyperparamater is", len(test_list))
