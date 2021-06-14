@@ -6,6 +6,7 @@ import signal
 from itertools import product
 
 f = open("SSM_Mgnet_data", 'w')
+f.write('count,channel,iteration,dataset,epochs,lr,wd,momentum,batchsize,truncate,dropfactor,significance,leakratio,ministat,samplefreq,varmode,keymode,trail,decrease_time,e1,a1,l1,e2,a2,l2,e3,a3,l3,e4,a4,l4,final_train_accuracy,final_test_accuracy,final_avg_loss,total_time\n')
 f.close()
 
 def run_command(env):
@@ -39,8 +40,6 @@ test_param_groups["ministate_group"] = [50,100]
 test_param_groups["keymode_group"] = ["loss_plus_smooth"]
 test_param_groups["varmode_group"] = ["bm"]
 test_param_groups["data_group"] = ["cifar10"]
-
-
 
 
 # flexible
