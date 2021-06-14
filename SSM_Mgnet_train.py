@@ -153,7 +153,7 @@ class SSM(SSM_Optimizer):
 
     def __init__(self, params, lr=-1, momentum=0, weight_decay=0, 
                  drop_factor=10, significance=0.05, tolerance = 0.01, var_mode='bm',
-                 leak_ratio=8, minN_stats=100, testfreq=100, samplefreq = 10, mode='loss_plus_smooth'):
+                 leak_ratio=8, minN_stats=100, testfreq=100, samplefreq = 10, trun=0.02, mode='loss_plus_smooth'):
 
         if lr <= 0:
             raise ValueError("Invalid value for learning rate (>0): {}".format(lr))
@@ -196,6 +196,8 @@ class SSM(SSM_Optimizer):
         self.state['loss'] = 0
         self.state['mode'] = mode
         self.state['step_test'] = 0
+        self.state['truncate'] = trun
+
 
         # statistics to monitor
         self.state['smoothing'] = 0
@@ -206,7 +208,6 @@ class SSM(SSM_Optimizer):
         self.state['statistic'] = 0
         self.state['stats_stationary'] = 0
         self.state['stats_mean'] = 0
-        self.state['truncate'] = 0.02
 
 
     def step(self, closure=None):
@@ -392,14 +393,10 @@ class MgNet(nn.Module):
 
             if l < len(num_iteration)-1:
                 A_old = A 
-                
                 A = nn.Conv2d(num_channel_u, num_channel_f, kernel_size=3,stride=1, padding=1, bias=False)
                 S = nn.Conv2d(num_channel_f, num_channel_u, kernel_size=3,stride=1, padding=1, bias=False)
-
                 Pi = nn.Conv2d(num_channel_u, num_channel_u, kernel_size=3,stride=2, padding=1, bias=False)
                 R = nn.Conv2d(num_channel_f, num_channel_f, kernel_size=3, stride=2, padding=1, bias=False)
-                
-                
                 layers= [MgRestriction(A_old, A, Pi, R)] 
         
         self.pooling = nn.AdaptiveAvgPool2d(1) 
@@ -411,14 +408,10 @@ class MgNet(nn.Module):
             u = torch.zeros(f.size(0),self.num_channel_u,f.size(2),f.size(3), device=torch.device('cuda')) 
         else:
             u = torch.zeros(f.size(0),self.num_channel_u,f.size(2),f.size(3))        
-       
-        
         out = (u, f) 
 
         for l in range(len(self.num_iteration)):
             out = getattr(self, 'layer'+str(l))(out)
-
-        
         u, f = out       
         u = self.pooling(u) #do avg pooling
         u = u.view(u.shape[0], -1)  #reshape u batch_Size to vector
@@ -531,7 +524,7 @@ def get_args():
     parser.add_argument('--data', type=str, help='cifar10, cifar100 or mnist', default='cifar10')
     
     # For models    
-    parser.add_argument('--ch', metavar='channel_number', default=256, type=int, help='channel number (default: 256)')
+    parser.add_argument('--ch', metavar='channel_number', default=128, type=int, help='channel number (default: 256)')
     
     parser.add_argument('--iter', metavar='iter', default='2222')
     
@@ -593,15 +586,11 @@ def main():
         testloader = torch.utils.data.DataLoader(testset, batch_size=minibatch_size, shuffle=False)
     
     
-    optimizer = SSM(my_model.parameters(), lr=args.lr, weight_decay=args.weight_decay, momentum=args.momentum, testfreq=len(trainloader), var_mode=args.varmode, leak_ratio=args.lk, minN_stats=args.minstat, mode=args.keymode, samplefreq=args.samplefreq, significance=args.sig)
+    optimizer = SSM(my_model.parameters(), lr=args.lr, weight_decay=args.weight_decay, momentum=args.momentum, testfreq=len(trainloader), var_mode=args.varmode, leak_ratio=args.lk, minN_stats=args.minstat, mode=args.keymode, samplefreq=args.samplefreq, significance=args.sig, drop_factor=args.drop, trun=args.trun)
     
     train_accuracy_list = []
     test_accuracy_list = []
-    lr_list = []
-    statistic_list = []
     avg_loss_list = []
-    key_list = []
-    epoch_time_list = []
     decrease_record = []
     
     start = timer()
@@ -727,6 +716,3 @@ def main():
     f.close()
 
 main()
-
-
-
