@@ -652,8 +652,8 @@ def main():
             
         
     end = timer()
-    
-    decrease_time = np.log10(args.lr/current_lr)
+    decrease_time = np.log10(args.lr/current_lr) / np.log10(10/args.drop) 
+
     
     print("complete")
     
@@ -676,7 +676,7 @@ def main():
     total_time = end - start
     # example of files for training  
     f = open("SSM_Mgnet_data", 'a')
-    f.write('{},{},{},{},{},{},{},{},{},,{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}\n'.format(
+    f.write('{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}\n'.format(
                              args.count,
                              args.ch,
                              args.iter,
