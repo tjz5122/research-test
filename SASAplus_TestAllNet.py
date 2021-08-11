@@ -878,13 +878,15 @@ for my_model in modeldic:
     end = timer()
     time = end - start
     
-    f.write("sasaplus_"+ my_model +"_testacculist = {}".format(test_accuracy_list))
-    f.write("sasaplus_"+ my_model +"_lrlist = {}".format(lr_list))
-    f.write("sasaplus_"+ my_model +"_losslist = {}".format(avg_loss_list))
-    f.write("sasaplus_"+ my_model +"_time = {}".format(time))
-    f.write("sasaplus_"+ my_model +"_maxtestaccu = {}".format(max_test_accuarcy))
-    f.write("sasaplus_"+ my_model +"_peakepoch = {}".format(peak_epoch))
+    f.write("sasaplus_"+ my_model)
+    f.write("sasaplus_"+ my_model +"_testacculist = {}\n".format(test_accuracy_list))
+    f.write("sasaplus_"+ my_model +"_lrlist = {}\n".format(lr_list))
+    f.write("sasaplus_"+ my_model +"_losslist = {}\n".format(avg_loss_list))
+    f.write("sasaplus_"+ my_model +"_time = {}\n".format(time))
+    f.write("sasaplus_"+ my_model +"_maxtestaccu = {}\n".format(max_test_accuarcy))
+    f.write("sasaplus_"+ my_model +"_peakepoch = {}\n".format(peak_epoch))
     f.write("sasaplus_"+ my_model +"_bestparam = {}\n".format(best_parameter))
+    f.write("\n")
 
 
 f.close()
