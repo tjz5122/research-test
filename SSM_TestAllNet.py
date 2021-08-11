@@ -591,7 +591,7 @@ testloader = torch.utils.data.DataLoader(testset, batch_size=minibatch_size, shu
 
 
 #additional model hyperparameter
-minstats = len(trainloader)
+minstats = 100
 testfreq = len(trainloader)
 
 
