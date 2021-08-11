@@ -878,7 +878,7 @@ for my_model in modeldic:
     end = timer()
     time = end - start
     
-    f.write("sasaplus_"+ my_model)
+    f.write("sasaplus_"+ my_model + "\n")
     f.write("sasaplus_"+ my_model +"_testacculist = {}\n".format(test_accuracy_list))
     f.write("sasaplus_"+ my_model +"_lrlist = {}\n".format(lr_list))
     f.write("sasaplus_"+ my_model +"_losslist = {}\n".format(avg_loss_list))
