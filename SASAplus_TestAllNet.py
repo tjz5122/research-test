@@ -816,7 +816,7 @@ for my_model in modeldic:
               labels = labels.cuda()
     
             # Forward pass to get the loss
-            if my_model == "mgnet128" or "mgnet256":
+            if my_model == "mgnet128" or my_model == "mgnet256":
                 outputs = modeldic[my_model](0,images)   # We need additional 0 input for u in MgNet
             else:
                 outputs = modeldic[my_model](images) 
@@ -836,7 +836,7 @@ for my_model in modeldic:
               if use_cuda:
                   images = images.cuda()
                   labels = labels.cuda()  
-              if my_model == "mgnet128" or "mgnet256":
+              if my_model == "mgnet128" or my_model == "mgnet256":
                   outputs = modeldic[my_model](0,images)   # We need additional 0 input for u in MgNet
               else:
                   outputs = modeldic[my_model](images) 
@@ -853,7 +853,7 @@ for my_model in modeldic:
               if use_cuda:
                   images = images.cuda()
                   labels = labels.cuda()
-              if my_model == "mgnet128" or "mgnet256":
+              if my_model == "mgnet128" or my_model == "mgnet256":
                   outputs = modeldic[my_model](0,images)   # We need additional 0 input for u in MgNet
               else:
                   outputs = modeldic[my_model](images) 
