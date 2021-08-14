@@ -888,7 +888,7 @@ for my_model in modeldic:
     f.write("sasaplus_"+ my_model +"_time = {}\n".format(time))
     f.write("sasaplus_"+ my_model +"_maxtestaccu = {}\n".format(max_test_accuarcy))
     f.write("sasaplus_"+ my_model +"_peakepoch = {}\n".format(peak_epoch))
-    f.write("sasaplus_"+ my_model +"_bestparam = {}\n".format(best_parameter))
+    #f.write("sasaplus_"+ my_model +"_bestparam = {}\n".format(best_parameter))
     f.write("\n")
 
 
