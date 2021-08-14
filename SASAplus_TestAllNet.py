@@ -784,10 +784,6 @@ testloader = torch.utils.data.DataLoader(testset, batch_size=minibatch_size, shu
 #additional model hyperparameter
 minstats = min(1000, len(trainloader))
 testfreq = min(100, len(trainloader)) #???
-if my_model == "preactresnet18" or my_model == "preactresnet34":
-    lr = 0.1
-else:
-    lr = 1
 
 
 #Step 4: Train the NNs
@@ -802,6 +798,12 @@ for my_model in modeldic:
     max_test_accuarcy = 0
     best_parameter = 0
     peak_epoch = 0
+    
+    
+    if my_model == "preactresnet18" or my_model == "preactresnet34":
+        lr = 0.1
+    else:
+        lr = 1
     
     optimizer = SASA(modeldic[my_model].parameters(), lr=lr, weight_decay=wd, momentum=momentum, testfreq=testfreq, drop_factor=dropfactor, 
                      significance=significance, var_mode=varmode, minN_stats=minstats, leak_ratio=leakratio, warmup=warmup, logstats=logstats, qhm_nu=qhm_nu)
