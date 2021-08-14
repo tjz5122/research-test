@@ -530,7 +530,6 @@ normalizedstd = (0.2023, 0.1994, 0.2010)
 
 #training hyperparameter
 num_epochs = 120
-lr = 1
 num_iteration = [2,2,2,2] # for each layer do 1 iteration or you can change to [2,2,2,2] or [2,1,1,1]
 minibatch_size = 128
 wd = 0.0005 
@@ -593,7 +592,10 @@ testloader = torch.utils.data.DataLoader(testset, batch_size=minibatch_size, shu
 #additional model hyperparameter
 minstats = 100
 testfreq = len(trainloader)
-
+if my_model == "preactresnet18" or my_model == "preactresnet34":
+    lr = 0.1
+else:
+    lr = 1
 
 #Step 4: Train the NNs
 # One epoch is when an entire dataset is passed through the neural network only once. 
