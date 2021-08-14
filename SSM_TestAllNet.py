@@ -697,7 +697,7 @@ for my_model in modeldic:
     f.write("ssm_"+ my_model +"_time = {}\n".format(time))
     f.write("ssm_"+ my_model +"_maxtestaccu = {}\n".format(max_test_accuarcy))
     f.write("ssm_"+ my_model +"_peakepoch = {}\n".format(peak_epoch))
-    f.write("ssm_"+ my_model +"_bestparam = {}\n".format(best_parameter))
+    #f.write("ssm_"+ my_model +"_bestparam = {}\n".format(best_parameter))
     f.write("\n")
 
 f.close()
