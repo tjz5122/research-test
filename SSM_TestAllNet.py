@@ -542,7 +542,7 @@ leakratio = 8
 samplefreq = 10
 significance = 0.05
 dropfactor = 10
-trun= 0.02
+trun= 0.03
  
 
 
