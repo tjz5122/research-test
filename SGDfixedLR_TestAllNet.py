@@ -255,11 +255,6 @@ trainloader = torch.utils.data.DataLoader(trainset, batch_size=minibatch_size, s
 testset = torchvision.datasets.CIFAR10(root='./data', train=False, download=True, transform=transform_test)
 testloader = torch.utils.data.DataLoader(testset, batch_size=minibatch_size, shuffle=False)
 
-#additional hyperparameter
-if my_model == "preactresnet18" or my_model == "preactresnet34":
-    lr = 0.1
-else:
-    lr = 1
 
 #Step 4: Train the NNs
 # One epoch is when an entire dataset is passed through the neural network only once. 
@@ -274,6 +269,11 @@ for my_model in modeldic:
     max_test_accuarcy = 0
     best_parameter = 0
     peak_epoch = 0
+    
+    if my_model == "preactresnet18" or my_model == "preactresnet34":
+        lr = 0.1
+    else:
+        lr = 1
     
     optimizer = optim.SGD(modeldic[my_model].parameters(), lr=lr, momentum=momentum, weight_decay=wd)
 
