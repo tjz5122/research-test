@@ -538,11 +538,11 @@ momentum = 0.6
 keymode = 'loss with smooth'
 varmode = 'bm'
 leakratio = 12
-samplefreq = 10
+samplefreq = 15
 significance = 0.05
 dropfactor = 10
 trun= 0.02
- 
+
 
 
 # Step 1: Define a model
