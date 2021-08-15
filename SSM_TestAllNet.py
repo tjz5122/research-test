@@ -146,7 +146,6 @@ class Bucket(object):
         # confidence interval
         t_sigma_dof = stats.t.ppf(1-sigma/2., dof)
         self.statistic = std * t_sigma_dof / math.sqrt(self.count)
-        print(self.statistic)
         if step_test != 0:
             self.statistic -= truncate
             
