@@ -538,11 +538,11 @@ momentum = 0.6
 #model hyperparameter
 keymode = 'loss with smooth'
 varmode = 'bm'
-leakratio = 8
+leakratio = 12
 samplefreq = 10
 significance = 0.05
 dropfactor = 10
-trun= 0.03
+trun= 0.02
  
 
 
