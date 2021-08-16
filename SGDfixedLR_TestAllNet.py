@@ -311,6 +311,15 @@ testset = torchvision.datasets.CIFAR10(root='./data', train=False, download=True
 testloader = torch.utils.data.DataLoader(testset, batch_size=minibatch_size, shuffle=False)
 
 
+###adjust_learning_rate
+def adjust_learning_rate(optimizer, epoch, init_lr):
+    #lr = 1.0 / (epoch + 1)
+    lr = init_lr * 0.1 ** (epoch // 30)
+    for param_group in optimizer.param_groups:
+        param_group['lr'] = lr
+    return lr
+
+
 #Step 4: Train the NNs
 # One epoch is when an entire dataset is passed through the neural network only once. 
 f = open("SGDfixedLR_TestAllNet", 'w')
@@ -334,7 +343,7 @@ for my_model in modeldic:
 
     start = timer()
     for epoch in range(num_epochs):
-
+        current_lr = adjust_learning_rate(optimizer, epoch, lr)
         running_loss = 0
         modeldic[my_model].train()
         for i, (images, labels) in enumerate(trainloader):
@@ -389,7 +398,6 @@ for my_model in modeldic:
               correct += (predicted == labels).sum()
               
         test_accuracy = float(correct)/total
-        current_lr = lr
         test_accuracy_list.append(test_accuracy)
         lr_list.append(current_lr)
         avg_loss_list.append(running_loss)
