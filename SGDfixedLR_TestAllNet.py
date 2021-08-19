@@ -414,7 +414,7 @@ for my_model in modeldic:
     
     f.write("SGDfixedlr_"+ my_model +"\n")
     f.write("SGDfixedlr_"+ my_model +"_testacculist = {}\n".format(test_accuracy_list))
-    f.write("SGDfixedlr_"+ my_model +"_lrlist = {}\n".format(lr_list))
+    f.write("SGDfixedlr_"+ my_model +"_lrlist = np.log10(array({}))\n".format(lr_list))
     f.write("SGDfixedlr_"+ my_model +"_losslist = {}\n".format(avg_loss_list))
     f.write("SGDfixedlr_"+ my_model +"_time = {}\n".format(time))
     f.write("SGDfixedlr_"+ my_model +"_maxtestaccu = {}\n".format(max_test_accuarcy))
