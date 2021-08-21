@@ -863,7 +863,7 @@ for my_model in modeldic:
     optimizer = SASA(modeldic[my_model].parameters(), lr=lr, weight_decay=wd, momentum=momentum, testfreq=testfreq, drop_factor=dropfactor, 
                      significance=significance, var_mode=varmode, minN_stats=minstats, leak_ratio=leakratio, warmup=warmup, logstats=logstats, qhm_nu=qhm_nu)
   
-    total_parameter = sum(p.numel() for p in my_model.parameters())
+    total_parameter = sum(p.numel() for p in modeldic[my_model].parameters())
     
     
     
