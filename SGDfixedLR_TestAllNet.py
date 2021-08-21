@@ -340,6 +340,8 @@ for my_model in modeldic:
         lr = 1
     
     optimizer = optim.SGD(modeldic[my_model].parameters(), lr=lr, momentum=momentum, weight_decay=wd)
+    
+    total_parameter = sum(p.numel() for p in my_model.parameters())
 
     start = timer()
     for epoch in range(num_epochs):
@@ -419,6 +421,7 @@ for my_model in modeldic:
     f.write("SGDfixedlr_"+ my_model +"_time = {}\n".format(time))
     f.write("SGDfixedlr_"+ my_model +"_maxtestaccu = {}\n".format(max_test_accuarcy))
     f.write("SGDfixedlr_"+ my_model +"_peakepoch = {}\n".format(peak_epoch))
+    f.write("SGDfixedlr_"+ my_model +"_totalparam = {}\n".format(total_parameter))
     #f.write("SGDfixedlr_"+ my_model +"_bestparam = {}\n".format(best_parameter))
     f.write("\n")
 
