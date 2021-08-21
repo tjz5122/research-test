@@ -869,7 +869,7 @@ for my_model in modeldic:
     
     
     filename = "sasaplus_"+ my_model +"_bestparam"
-    path = "{}.pt".format(filename)
+    path = "best-model/{}.pt".format(filename)
     torch.save(modeldic[my_model].state_dict(), path)
                   
         
