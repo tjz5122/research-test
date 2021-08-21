@@ -862,7 +862,8 @@ for my_model in modeldic:
     
     optimizer = SASA(modeldic[my_model].parameters(), lr=lr, weight_decay=wd, momentum=momentum, testfreq=testfreq, drop_factor=dropfactor, 
                      significance=significance, var_mode=varmode, minN_stats=minstats, leak_ratio=leakratio, warmup=warmup, logstats=logstats, qhm_nu=qhm_nu)
-
+  
+    total_parameter = sum(p.numel() for p in my_model.parameters())
                   
 
     start = timer()
@@ -945,6 +946,7 @@ for my_model in modeldic:
     f.write("sasaplus_"+ my_model +"_time = {}\n".format(time))
     f.write("sasaplus_"+ my_model +"_maxtestaccu = {}\n".format(max_test_accuarcy))
     f.write("sasaplus_"+ my_model +"_peakepoch = {}\n".format(peak_epoch))
+    f.write("sasaplus_"+ my_model +"_totalparam = {}\n".format(total_parameter))
     #f.write("sasaplus_"+ my_model +"_bestparam = {}\n".format(best_parameter))
     f.write("\n")
 
