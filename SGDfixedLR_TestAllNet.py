@@ -414,8 +414,20 @@ for my_model in modeldic:
     end = timer()
     time = end - start
     
-    #save best model
-    torch.save(model.state_dict(), "~/github_repo/research-test/best-model")
+   #save best model
+    filename = "sasaplus_"+ my_model +"_bestparam"
+    path = "best-model/{}.pt".format(filename)
+    torch.save(best_parameter, path)
+    
+    
+    '''
+    #load best model
+    device = torch.device("cuda")
+    model = ResNet(BasicBlock, [2,2,2,2], num_classes=num_classes)
+    model.load_state_dict(torch.load(path))
+    model.to(device)
+    '''
+    
     
     f.write("SGDfixedlr_"+ my_model +"\n")
     f.write("SGDfixedlr_"+ my_model +"_testacculist = {}\n".format(test_accuracy_list))
