@@ -669,7 +669,7 @@ for my_model in modeldic:
     
     optimizer = SSM(modeldic[my_model].parameters(), lr=lr, weight_decay=wd, momentum=momentum, testfreq=testfreq, var_mode=varmode, 
                     leak_ratio=leakratio, minN_stats=minstats, mode=keymode, samplefreq=samplefreq, significance=significance, drop_factor=dropfactor, trun=trun)
-    total_parameter = sum(p.numel() for p in my_model.parameters())
+    total_parameter = sum(p.numel() for p in modeldic[my_model].parameters())
 
     start = timer()
     for epoch in range(num_epochs):
