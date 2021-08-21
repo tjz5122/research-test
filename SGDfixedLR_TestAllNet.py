@@ -407,12 +407,15 @@ for my_model in modeldic:
         # update parameter
         if test_accuracy > max_test_accuarcy:
             max_test_accuarcy = test_accuracy
-            best_parameter = optimizer.param_groups[0]['params']
+            best_parameter = modeldic[my_model].state_dict()
             peak_epoch = epoch
     
     
     end = timer()
     time = end - start
+    
+    #save best model
+    torch.save(model.state_dict(), "~/github_repo/research-test/best-model")
     
     f.write("SGDfixedlr_"+ my_model +"\n")
     f.write("SGDfixedlr_"+ my_model +"_testacculist = {}\n".format(test_accuracy_list))
