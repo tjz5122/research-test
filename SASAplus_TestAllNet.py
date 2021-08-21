@@ -942,6 +942,13 @@ for my_model in modeldic:
     #save best model
     torch.save(model.state_dict(), "~/github_repo/research-test/best-model")
     
+    '''
+    device = torch.device("cuda")
+    model = TheModelClass(*args, **kwargs)
+    model.load_state_dict(torch.load(PATH))
+    model.to(device)
+    '''
+    
     
     f.write("sasaplus_"+ my_model + "\n")
     f.write("sasaplus_"+ my_model +"_testacculist = {}\n".format(test_accuracy_list))
