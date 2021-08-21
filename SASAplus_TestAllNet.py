@@ -865,18 +865,6 @@ for my_model in modeldic:
   
     total_parameter = sum(p.numel() for p in modeldic[my_model].parameters())
     
-    
-    
-    
-    filename = "sasaplus_"+ my_model +"_bestparam"
-    path = "best-model/{}.pt".format(filename)
-    torch.save(modeldic[my_model].state_dict(), path)
-                  
-        
-        
-        
-        
-
     start = timer()
     for epoch in range(num_epochs):
 
@@ -952,7 +940,7 @@ for my_model in modeldic:
     
     #save best model
     filename = "sasaplus_"+ my_model +"_bestparam"
-    path = "tjz5122@E1-052517:~/github_repo/research-test/best-model/{}.pt".format(filename)
+    path = "best-model/{}.pt".format(filename)
     torch.save(best_parameter, path)
     
     
