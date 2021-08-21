@@ -864,7 +864,18 @@ for my_model in modeldic:
                      significance=significance, var_mode=varmode, minN_stats=minstats, leak_ratio=leakratio, warmup=warmup, logstats=logstats, qhm_nu=qhm_nu)
   
     total_parameter = sum(p.numel() for p in my_model.parameters())
+    
+    
+    
+    
+    filename = "sasaplus_"+ my_model +"_bestparam"
+    path = "~/github_repo/research-test/best-model/{}.pt".format(filename)
+    torch.save(modeldic[my_model].state_dict(), path)
                   
+        
+        
+        
+        
 
     start = timer()
     for epoch in range(num_epochs):
@@ -940,12 +951,16 @@ for my_model in modeldic:
     time = end - start
     
     #save best model
-    torch.save(model.state_dict(), "~/github_repo/research-test/best-model")
+    filename = "sasaplus_"+ my_model +"_bestparam"
+    path = "~/github_repo/research-test/best-model/{}.pt".format(filename)
+    torch.save(best_parameter, path)
+    
     
     '''
+    #load best model
     device = torch.device("cuda")
-    model = TheModelClass(*args, **kwargs)
-    model.load_state_dict(torch.load(PATH))
+    model = ResNet(BasicBlock, [2,2,2,2], num_classes=num_classes)
+    model.load_state_dict(torch.load(path))
     model.to(device)
     '''
     
@@ -958,7 +973,6 @@ for my_model in modeldic:
     f.write("sasaplus_"+ my_model +"_maxtestaccu = {}\n".format(max_test_accuarcy))
     f.write("sasaplus_"+ my_model +"_peakepoch = {}\n".format(peak_epoch))
     f.write("sasaplus_"+ my_model +"_totalparam = {}\n".format(total_parameter))
-    #f.write("sasaplus_"+ my_model +"_bestparam = {}\n".format(best_parameter))
     f.write("\n")
 
 
