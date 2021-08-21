@@ -869,7 +869,7 @@ for my_model in modeldic:
     
     
     filename = "sasaplus_"+ my_model +"_bestparam"
-    path = "~/github_repo/research-test/best-model/{}.pt".format(filename)
+    path = "tjz5122@E1-052517:~/github_repo/research-test/best-model/{}.pt".format(filename)
     torch.save(modeldic[my_model].state_dict(), path)
                   
         
@@ -952,7 +952,7 @@ for my_model in modeldic:
     
     #save best model
     filename = "sasaplus_"+ my_model +"_bestparam"
-    path = "~/github_repo/research-test/best-model/{}.pt".format(filename)
+    path = "tjz5122@E1-052517:~/github_repo/research-test/best-model/{}.pt".format(filename)
     torch.save(best_parameter, path)
     
     
