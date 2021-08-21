@@ -611,9 +611,6 @@ densenet121 = models.densenet121()
 densenet161 = models.densenet161()
 efficientnet = EfficientNet.from_pretrained('efficientnet-b0')
 
-modeldic  = {"resnet18":resnet18, "resnet34":resnet34}
-
-'''
 modeldic  = {"mgnet128":mgnet128, 
              "mgnet256":mgnet256,
              "resnet18":resnet18, 
@@ -623,7 +620,7 @@ modeldic  = {"mgnet128":mgnet128,
              "densenet121":densenet121,
              "densenet161":densenet161,
              "efficientnet":efficientnet}
-'''
+
 if use_cuda:
     for i in modeldic:
         modeldic[i] = modeldic[i].cuda()
