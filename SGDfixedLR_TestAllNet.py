@@ -341,7 +341,7 @@ for my_model in modeldic:
     
     optimizer = optim.SGD(modeldic[my_model].parameters(), lr=lr, momentum=momentum, weight_decay=wd)
     
-    total_parameter = sum(p.numel() for p in my_model.parameters())
+    total_parameter = sum(p.numel() for p in modeldic[my_model].parameters())
 
     start = timer()
     for epoch in range(num_epochs):
