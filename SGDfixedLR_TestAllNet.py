@@ -415,7 +415,7 @@ for my_model in modeldic:
     time = end - start
     
    #save best model
-    filename = "sasaplus_"+ my_model +"_bestparam"
+    filename = "SGDfixedlr_"+ my_model +"_bestparam"
     path = "best-model/{}.pt".format(filename)
     torch.save(best_parameter, path)
     
