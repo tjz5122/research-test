@@ -794,6 +794,7 @@ qhm_nu = 1
 
 
 # Step 1: Define a model
+'''
 mgnet128 = MgNet(num_channel_input, num_iteration, 128, 128, num_classes)
 mgnet256 = MgNet(num_channel_input, num_iteration, 256, 256, num_classes)
 resnet18 = ResNet(BasicBlock, [2,2,2,2], num_classes=num_classes)
@@ -804,6 +805,7 @@ densenet121 = models.densenet121()
 densenet161 = models.densenet161()
 efficientnet = EfficientNet.from_pretrained('efficientnet-b0')
 
+
 modeldic  = {"mgnet128":mgnet128, 
              "mgnet256":mgnet256,
              "resnet18":resnet18, 
@@ -813,6 +815,18 @@ modeldic  = {"mgnet128":mgnet128,
              "densenet121":densenet121,
              "densenet161":densenet161,
              "efficientnet":efficientnet}
+'''
+efficientnet0 = EfficientNet.from_pretrained('efficientnet-b0')
+efficientnet1 = EfficientNet.from_pretrained('efficientnet-b1')
+efficientnet2 = EfficientNet.from_pretrained('efficientnet-b2')
+efficientnet3 = EfficientNet.from_pretrained('efficientnet-b3')
+efficientnet4 = EfficientNet.from_pretrained('efficientnet-b4')
+modeldic  = {"efficientnet0":efficientnet0,
+             "efficientnet1":efficientnet1,
+             "efficientnet2":efficientnet2,
+             "efficientnet3":efficientnet3,
+             "efficientnet4":efficientnet4}
+
 
 if use_cuda:
     for i in modeldic:
