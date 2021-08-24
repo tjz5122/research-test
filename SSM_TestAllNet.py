@@ -941,12 +941,16 @@ modeldic  = {"mgnet128":mgnet128,
              "densenet161":densenet161,
              "efficientnet":efficientnet}
 '''
+densenet121 = densenet121()
+densenet161 = densenet161()
 efficientnet0 = EfficientNet.from_pretrained('efficientnet-b0')
 efficientnet1 = EfficientNet.from_pretrained('efficientnet-b1')
 efficientnet2 = EfficientNet.from_pretrained('efficientnet-b2')
 efficientnet3 = EfficientNet.from_pretrained('efficientnet-b3')
 efficientnet4 = EfficientNet.from_pretrained('efficientnet-b4')
-modeldic  = {"efficientnet0":efficientnet0,
+modeldic  = {"densenet121":densenet121,
+             "densenet161":densenet161,
+             "efficientnet0":efficientnet0,
              "efficientnet1":efficientnet1,
              "efficientnet2":efficientnet2,
              "efficientnet3":efficientnet3,
