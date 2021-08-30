@@ -4,7 +4,7 @@ import torch.optim as optim
 import torchvision
 import torch.nn.functional as F
 from timeit import default_timer as timer
-
+import os
 import numpy as np
 import logging
 from mgnet import MgNet
