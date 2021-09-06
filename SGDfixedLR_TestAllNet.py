@@ -580,10 +580,10 @@ normalizedmean = (0.4914, 0.4822, 0.4465)
 normalizedstd = (0.2023, 0.1994, 0.2010)
 
 #training hyperparameter
-num_epochs = 120
+num_epochs = 150  #120
 num_iteration = [2,2,2,2] # for each layer do 1 iteration or you can change to [2,2,2,2] or [2,1,1,1]
 minibatch_size = 128
-wd = 0.0005 
+wd = 0.0001  #0.0005
 momentum = 0.6
  
 
@@ -610,20 +610,16 @@ modeldic  = {"mgnet128":mgnet128,
              "densenet161":densenet161,
              "efficientnet":efficientnet}
 '''
-densenet121 = densenet121()
-densenet161 = densenet161()
-efficientnet0 = EfficientNet.from_pretrained('efficientnet-b0')
-efficientnet1 = EfficientNet.from_pretrained('efficientnet-b1')
-efficientnet2 = EfficientNet.from_pretrained('efficientnet-b2')
-efficientnet3 = EfficientNet.from_pretrained('efficientnet-b3')
-efficientnet4 = EfficientNet.from_pretrained('efficientnet-b4')
-modeldic  = {"densenet121":densenet121,
-             "densenet161":densenet161,
-             "efficientnet0":efficientnet0,
-             "efficientnet1":efficientnet1,
-             "efficientnet2":efficientnet2,
-             "efficientnet3":efficientnet3,
-             "efficientnet4":efficientnet4}
+resnet18 = ResNet(BasicBlock, [2,2,2,2], num_classes=num_classes)
+resnet34 = ResNet(BasicBlock, [3,4,6,3], num_classes=num_classes)
+torchresnet18 = models.resnet18()
+torchresnet34 = models.resnet34()
+
+
+modeldic  = {"resnet18":resnet18, 
+             "resnet34":resnet34,
+             "torchresnet18":torchresnet18,
+             "torchresnet34":torchresnet34}
 
 
 if use_cuda:
@@ -651,7 +647,7 @@ testloader = torch.utils.data.DataLoader(testset, batch_size=minibatch_size, shu
 ###adjust_learning_rate
 def adjust_learning_rate(optimizer, epoch, init_lr):
     #lr = 1.0 / (epoch + 1)
-    lr = init_lr * 0.1 ** (epoch // 30)
+    lr = init_lr * 0.1 ** (epoch // 50)   #30
     for param_group in optimizer.param_groups:
         param_group['lr'] = lr
     return lr
@@ -671,10 +667,13 @@ for my_model in modeldic:
     best_parameter = 0
     peak_epoch = 0
     
+    '''
     if my_model == "preactresnet18" or my_model == "preactresnet34":
         lr = 0.1
     else:
         lr = 1
+    '''
+    lr = 0.1
     
     optimizer = optim.SGD(modeldic[my_model].parameters(), lr=lr, momentum=momentum, weight_decay=wd)
     
@@ -769,12 +768,14 @@ for my_model in modeldic:
     f.write("SGDfixedlr_"+ my_model +"\n")
     f.write("SGDfixedlr_"+ my_model +"_testacculist = {}\n".format(test_accuracy_list))
     f.write("SGDfixedlr_"+ my_model +"_lrlist = np.log10(array({}))\n".format(lr_list))
+    '''
     f.write("SGDfixedlr_"+ my_model +"_losslist = {}\n".format(avg_loss_list))
     f.write("SGDfixedlr_"+ my_model +"_time = {}\n".format(time))
     f.write("SGDfixedlr_"+ my_model +"_maxtestaccu = {}\n".format(max_test_accuarcy))
     f.write("SGDfixedlr_"+ my_model +"_peakepoch = {}\n".format(peak_epoch))
     f.write("SGDfixedlr_"+ my_model +"_totalparam = {}\n".format(total_parameter))
     #f.write("SGDfixedlr_"+ my_model +"_bestparam = {}\n".format(best_parameter))
+    '''
     f.write("\n")
 
 f.close()
