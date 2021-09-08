@@ -261,7 +261,7 @@ normalizedmean = (0.4914, 0.4822, 0.4465)
 normalizedstd = (0.2023, 0.1994, 0.2010)
 
 #training hyperparameter
-num_epochs = 120  
+num_epochs = 150  
 num_iteration = [2,2,2,2] # for each layer do 1 iteration or you can change to [2,2,2,2] or [2,1,1,1]
 minibatch_size = 128
 wd = 0.0005
