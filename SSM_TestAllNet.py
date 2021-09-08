@@ -765,7 +765,6 @@ for my_model in modeldic:
     '''
     
     
-    f.write("ssm_"+ my_model +"\n")
     f.write("ssm_"+ my_model +"_testacculist = {}\n".format(test_accuracy_list))
     f.write("ssm_"+ my_model +"_lrlist = np.log10(array({}))\n".format(lr_list))
     f.write("ssm_"+ my_model +"_statlist = {}\n".format(statistic_list))
