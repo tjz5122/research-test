@@ -267,25 +267,23 @@ minibatch_size = 128
 wd = 0.0005
 momentum = 0.9
 decrease_rate = 50    #30 on MINIST; 50 on CIFAR10
+drop_factor = 10
  
 
 # Step 1: Define a model
 
-'''
 mgnet128 = MgNet(num_channel_input, num_iteration, 128, 128, num_classes)
 mgnet256 = MgNet(num_channel_input, num_iteration, 256, 256, num_classes)
 resnet18 = ResNet(BasicBlock, [2,2,2,2], num_classes=num_classes)
 resnet34 = ResNet(BasicBlock, [3,4,6,3], num_classes=num_classes)
 preactresnet18 = PreActResNet18()
-'''
 preactresnet34 = PreActResNet34()
-'''
 densenet121 = models.densenet121()
 densenet161 = models.densenet161()
 efficientnet = EfficientNet.from_pretrained('efficientnet-b0')
-'''
 
-'''
+
+
 modeldic  = {"mgnet128":mgnet128, 
              "mgnet256":mgnet256,
              "resnet18":resnet18, 
@@ -295,8 +293,7 @@ modeldic  = {"mgnet128":mgnet128,
              "densenet121":densenet121,
              "densenet161":densenet161,
              "efficientnet":efficientnet}
-'''
-modeldic  = {"preactresnet34":preactresnet34}
+
 
 if use_cuda:
     for i in modeldic:
@@ -323,7 +320,7 @@ testloader = torch.utils.data.DataLoader(testset, batch_size=minibatch_size, shu
 ###adjust_learning_rate
 def adjust_learning_rate(optimizer, epoch, init_lr):
     #lr = 1.0 / (epoch + 1)
-    lr = init_lr * 0.1 ** (epoch // decrease_rate)
+    lr = init_lr * (1/drop_factor) ** (epoch // decrease_rate)
     for param_group in optimizer.param_groups:
         param_group['lr'] = lr
     return lr
