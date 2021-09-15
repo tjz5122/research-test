@@ -790,7 +790,7 @@ dropfactor = 10
 
 warmup = 1000
 logstats = 0
-qhm_nu = 1
+qhm_nu = 1 #SGD with momentum
 
 
 # Step 1: Define a model
@@ -944,7 +944,7 @@ for my_model in modeldic:
     
     #save best model
     filename = "sasaplus_"+ my_model +"_bestparam"
-    path = "best-model/{}.pt".format(filename)
+    path = "best_model/{}.pt".format(filename)
     torch.save(best_parameter, path)
     
     
