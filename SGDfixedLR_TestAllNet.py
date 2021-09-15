@@ -266,6 +266,7 @@ num_iteration = [2,2,2,2] # for each layer do 1 iteration or you can change to [
 minibatch_size = 128
 wd = 0.0005
 momentum = 0.9
+decrease_rate = 50    #30 on MINIST; 50 on CIFAR10
  
 
 # Step 1: Define a model
@@ -322,7 +323,7 @@ testloader = torch.utils.data.DataLoader(testset, batch_size=minibatch_size, shu
 ###adjust_learning_rate
 def adjust_learning_rate(optimizer, epoch, init_lr):
     #lr = 1.0 / (epoch + 1)
-    lr = init_lr * 0.1 ** (epoch // 50)   #30
+    lr = init_lr * 0.1 ** (epoch // decrease_rate)
     for param_group in optimizer.param_groups:
         param_group['lr'] = lr
     return lr
