@@ -110,7 +110,7 @@ testset = torchvision.datasets.CIFAR10(root='./data', train=False, download=True
 testloader = torch.utils.data.DataLoader(testset, batch_size=minibatch_size, shuffle=False)
 
 
-optimizer = optim.SGD(my_model.parameters(), lr=lr, momentum=m, weight_decay = wd)
+optimizer = optim.SGD(my_model.parameters(), lr=lr, momentum=m, dampening=m, weight_decay = wd)
 
 # classes = ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
 
