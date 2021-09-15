@@ -350,7 +350,7 @@ for my_model in modeldic:
 
 
     
-    optimizer = optim.SGD(modeldic[my_model].parameters(), lr=lr, momentum=momentum, weight_decay=wd)
+    optimizer = optim.SGD(modeldic[my_model].parameters(), lr=lr, momentum=momentum, dampening=momentum, weight_decay=wd)
     
     total_parameter = sum(p.numel() for p in modeldic[my_model].parameters())
 
