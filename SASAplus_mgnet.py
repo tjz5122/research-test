@@ -4,12 +4,16 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.optim import Optimizer
 from scipy import stats
-import numpy as np
-import torch.optim as optim
 import torchvision
 from timeit import default_timer as timer
-import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
+import torchvision.models as models
+from efficientnet_pytorch import EfficientNet
+
+use_cuda = torch.cuda.is_available()
+print('Use GPU?', use_cuda)
+
+
+
 
 class QHM(Optimizer):
     r"""
@@ -77,7 +81,7 @@ class QHM(Optimizer):
                 if weight_decay > 0:
                     p.grad.data.add_(weight_decay, p.data)
 
-    def qhm_direction(self):
+    def qhm_direction(self, dampening=0):
 
         for group in self.param_groups:
             momentum = group['momentum']
@@ -99,7 +103,7 @@ class QHM(Optimizer):
                     else:
                         h = state['momentum_buffer']
                     # Update momentum buffer: h(k) = (1 - \beta) * g(k) + \beta * h(k-1)
-                    h.mul_(momentum).add_(1 - momentum, g)
+                    h.mul_(momentum).add_(1 - dampening, g)
 
                     if abs(qhm_nu - 1) < 1e-12:  # if nu=1, then same as SGD with momentum
                         d = state['step_buffer'] = h
@@ -343,7 +347,7 @@ class SASA(QHM):
         >>> optimizer.step()
     """
 
-    def __init__(self, params, lr=-1, momentum=0, qhm_nu=1, weight_decay=0, 
+    def __init__(self, params, lr=-1, momentum=0, dampening=0, qhm_nu=1, weight_decay=0, 
                  warmup=1000, drop_factor=10, significance=0.05, var_mode='mb',
                  leak_ratio=8, minN_stats=1000, testfreq=100, logstats=0):
 
@@ -387,7 +391,7 @@ class SASA(QHM):
         self.state['logstats'] = int(logstats)
         self.state['composite_test'] = True     # first drop use composite test
         self.state['nSteps'] = 0                # steps counter +1 every iteration
-
+        self.state['dampening'] = dampening
         # statistics to monitor
         self.state['stats_x1d'] = 0
         self.state['stats_ld2'] = 0
@@ -412,8 +416,8 @@ class SASA(QHM):
             loss = closure()
 
         self.add_weight_decay()
-        self.qhm_direction()
-        self.qhm_update()
+        self.qhm_direction(dampening=0)
+        self.qhm_update(dampening = self.state['dampening'])
         self.state['nSteps'] += 1
         self.stats_adaptation()
 
@@ -517,15 +521,12 @@ class SASA(QHM):
                 state = self.state[p]
                 if buf_name in state:
                     state[buf_name].zero_()
-        return None
-      
-      
-      
-  
-### Design the Mgnet Network
-use_cuda = torch.cuda.is_available()
-print('Use GPU?', use_cuda)
+        return None  
+    
 
+
+
+###Mgnet
 class MgIte(nn.Module): 
     def __init__(self, A, S):
         super().__init__()
@@ -583,14 +584,10 @@ class MgNet(nn.Module):
 
             if l < len(num_iteration)-1:
                 A_old = A 
-                
                 A = nn.Conv2d(num_channel_u, num_channel_f, kernel_size=3,stride=1, padding=1, bias=False)
                 S = nn.Conv2d(num_channel_f, num_channel_u, kernel_size=3,stride=1, padding=1, bias=False)
-
                 Pi = nn.Conv2d(num_channel_u, num_channel_u, kernel_size=3,stride=2, padding=1, bias=False)
                 R = nn.Conv2d(num_channel_f, num_channel_f, kernel_size=3, stride=2, padding=1, bias=False)
-                
-                
                 layers= [MgRestriction(A_old, A, Pi, R)] 
         
         self.pooling = nn.AdaptiveAvgPool2d(1) 
@@ -602,141 +599,373 @@ class MgNet(nn.Module):
             u = torch.zeros(f.size(0),self.num_channel_u,f.size(2),f.size(3), device=torch.device('cuda')) 
         else:
             u = torch.zeros(f.size(0),self.num_channel_u,f.size(2),f.size(3))        
-       
-        
         out = (u, f) 
 
         for l in range(len(self.num_iteration)):
             out = getattr(self, 'layer'+str(l))(out)
-
-        
         u, f = out       
         u = self.pooling(u) #do avg pooling
         u = u.view(u.shape[0], -1)  #reshape u batch_Size to vector
         u = self.fc(u)
         return u
-      
-      
-      
-      
+
+    
+    
+###Resnet
+class BasicBlock(nn.Module):
+    def __init__(self, in_planes, planes, stride):
+        super().__init__()
+        self.conv1 = nn.Conv2d(in_planes, planes, kernel_size=3, stride=stride, padding=1, bias=False)
+        self.bn1 = nn.BatchNorm2d(planes)
+        self.conv2 = nn.Conv2d(planes, planes, kernel_size=3, stride=1, padding=1, bias=False)
+        self.bn2 = nn.BatchNorm2d(planes)
+
+        self.shortcut = nn.Sequential()
+        if stride != 1:
+            self.shortcut = nn.Sequential(nn.Conv2d(in_planes, planes, kernel_size=1, stride=stride, bias=False),
+                                          nn.BatchNorm2d(planes))
+
+    def forward(self, x):
+        out = F.relu(self.bn1(self.conv1(x)))
+        out = self.bn2(self.conv2(out))
+        out += self.shortcut(x)
+        out = F.relu(out)
+        return out
+
+
+class ResNet(nn.Module):
+    def __init__(self, block, num_blocks, num_classes=10):
+        super().__init__()
+        self.in_planes = 64
+
+        self.conv1 = nn.Conv2d(3, 64, kernel_size=3, stride=1, padding=1, bias=False)
+        self.bn1 = nn.BatchNorm2d(64)
+        self.layer1 = self._make_layer(block, 64, num_blocks[0], stride=1)
+        self.layer2 = self._make_layer(block, 128, num_blocks[1], stride=2)
+        self.layer3 = self._make_layer(block, 256, num_blocks[2], stride=2)
+        self.layer4 = self._make_layer(block, 512, num_blocks[3], stride=2)
+        self.linear = nn.Linear(512, num_classes)
+
+    def _make_layer(self, block, planes, num_blocks, stride):
+        strides = [stride] + [1]*(num_blocks-1)
+        layers = []
+        for stride in strides:
+            layers.append(block(self.in_planes, planes, stride))
+            self.in_planes = planes
+        return nn.Sequential(*layers)
+
+    def forward(self, x):
+        out = F.relu(self.bn1(self.conv1(x)))
+        out = self.layer1(out)
+        out = self.layer2(out)
+        out = self.layer3(out)
+        out = self.layer4(out)
+        out = F.avg_pool2d(out, 4)
+        out = out.view(out.size(0), -1)
+        out = self.linear(out)
+        return out   
+    
+###pre-act resnet
+class PreActBlock(nn.Module):
+    '''Pre-activation version of the BasicBlock.'''
+    expansion = 1
+
+    def __init__(self, in_planes, planes, stride=1):
+        super(PreActBlock, self).__init__()
+        self.bn1 = nn.BatchNorm2d(in_planes)
+        self.conv1 = nn.Conv2d(in_planes, planes, kernel_size=3, stride=stride, padding=1, bias=False)
+        self.bn2 = nn.BatchNorm2d(planes)
+        self.conv2 = nn.Conv2d(planes, planes, kernel_size=3, stride=1, padding=1, bias=False)
+
+        if stride != 1 or in_planes != self.expansion*planes:
+            self.shortcut = nn.Sequential(
+                nn.Conv2d(in_planes, self.expansion*planes, kernel_size=1, stride=stride, bias=False)
+            )
+
+    def forward(self, x):
+        out = F.relu(self.bn1(x))
+        shortcut = self.shortcut(out) if hasattr(self, 'shortcut') else x
+        out = self.conv1(out)
+        out = self.conv2(F.relu(self.bn2(out)))
+        out += shortcut
+        return out
+
+
+class PreActBottleneck(nn.Module):
+    '''Pre-activation version of the original Bottleneck module.'''
+    expansion = 4
+
+    def __init__(self, in_planes, planes, stride=1):
+        super(PreActBottleneck, self).__init__()
+        self.bn1 = nn.BatchNorm2d(in_planes)
+        self.conv1 = nn.Conv2d(in_planes, planes, kernel_size=1, bias=False)
+        self.bn2 = nn.BatchNorm2d(planes)
+        self.conv2 = nn.Conv2d(planes, planes, kernel_size=3, stride=stride, padding=1, bias=False)
+        self.bn3 = nn.BatchNorm2d(planes)
+        self.conv3 = nn.Conv2d(planes, self.expansion*planes, kernel_size=1, bias=False)
+
+        if stride != 1 or in_planes != self.expansion*planes:
+            self.shortcut = nn.Sequential(
+                nn.Conv2d(in_planes, self.expansion*planes, kernel_size=1, stride=stride, bias=False)
+            )
+
+    def forward(self, x):
+        out = F.relu(self.bn1(x))
+        shortcut = self.shortcut(out) if hasattr(self, 'shortcut') else x
+        out = self.conv1(out)
+        out = self.conv2(F.relu(self.bn2(out)))
+        out = self.conv3(F.relu(self.bn3(out)))
+        out += shortcut
+        return out
+
+
+class PreActResNet(nn.Module):
+    def __init__(self, block, num_blocks, num_classes=10):
+        super(PreActResNet, self).__init__()
+        self.in_planes = 64
+        self.conv1 = nn.Conv2d(3, 64, kernel_size=3, stride=1, padding=1, bias=False)
+        self.layer1 = self._make_layer(block, 64, num_blocks[0], stride=1)
+        self.layer2 = self._make_layer(block, 128, num_blocks[1], stride=2)
+        self.layer3 = self._make_layer(block, 256, num_blocks[2], stride=2)
+        self.layer4 = self._make_layer(block, 512, num_blocks[3], stride=2)
+        self.linear = nn.Linear(512*block.expansion, num_classes)
+
+    def _make_layer(self, block, planes, num_blocks, stride):
+        strides = [stride] + [1]*(num_blocks-1)
+        layers = []
+        for stride in strides:
+            layers.append(block(self.in_planes, planes, stride))
+            self.in_planes = planes * block.expansion
+        return nn.Sequential(*layers)
+
+    def forward(self, x):
+        out = self.conv1(x)
+        out = self.layer1(out)
+        out = self.layer2(out)
+        out = self.layer3(out)
+        out = self.layer4(out)
+        out = F.avg_pool2d(out, 4)
+        out = out.view(out.size(0), -1)
+        out = self.linear(out)
+        return out
+
+
+def PreActResNet18():
+    return PreActResNet(PreActBlock, [2,2,2,2])
+
+def PreActResNet34():
+    return PreActResNet(PreActBlock, [3,4,6,3])
+
+def PreActResNet50():
+    return PreActResNet(PreActBottleneck, [3,4,6,3])
+
+def PreActResNet101():
+    return PreActResNet(PreActBottleneck, [3,4,23,3])
+
+def PreActResNet152():
+    return PreActResNet(PreActBottleneck, [3,8,36,3])
+
+
+
 ### Implementation
-minibatch_size = 128
-num_epochs = 360
-lr = 1
-degree = 256
-num_channel_input = 3 # since cifar10
-num_channel_u = degree # usaually take channel u and f same, suggested value = 64,128,256,512.....
-num_channel_f = degree
+
+# cifar 10
+num_channel_input = 3
 num_classes = 10
+normalizedmean = (0.4914, 0.4822, 0.4465)
+normalizedstd = (0.2023, 0.1994, 0.2010)
+
+#training hyperparameter
+num_epochs = 150
 num_iteration = [2,2,2,2] # for each layer do 1 iteration or you can change to [2,2,2,2] or [2,1,1,1]
+minibatch_size = 128
+wd = 0.0005 
+momentum = 0.9     #0.6
+
+#model hyperparameter
+varmode = 'mb'
+significance = 0.05
+leakratio = 8
+dropfactor = 10 
+
+warmup = 1000
+logstats = 0
+qhm_nu = 1 #SGD with momentum
+
 
 # Step 1: Define a model
-my_model = MgNet(num_channel_input, num_iteration, num_channel_u, num_channel_f, num_classes)
+
+mgnet128 = MgNet(num_channel_input, num_iteration, 128, 128, num_classes)
+mgnet256 = MgNet(num_channel_input, num_iteration, 256, 256, num_classes)
+resnet18 = ResNet(BasicBlock, [2,2,2,2], num_classes=num_classes)
+resnet34 = ResNet(BasicBlock, [3,4,6,3], num_classes=num_classes)
+preactresnet18 = PreActResNet18()
+preactresnet34 = PreActResNet34()
+densenet121 = models.densenet121()
+densenet161 = models.densenet161()
+efficientnet = EfficientNet.from_pretrained('efficientnet-b0')
+
+
+modeldic  = {"mgnet128":mgnet128, 
+             "mgnet256":mgnet256,
+             "resnet18":resnet18, 
+             "resnet34":resnet34, 
+             "preactresnet18":preactresnet18, 
+             "preactresnet34": preactresnet34,
+             "densenet121":densenet121,
+             "densenet161":densenet161,
+             "efficientnet":efficientnet}
+
+
 
 if use_cuda:
-    my_model = my_model.cuda()
+    for i in modeldic:
+        modeldic[i] = modeldic[i].cuda()
 
 # Step 2: Define a loss function and training algorithm
 criterion = nn.CrossEntropyLoss()
 
 # Step 3: load dataset
-normalize = torchvision.transforms.Normalize(mean=(0.4914, 0.4822, 0.4465), std=(0.2023, 0.1994, 0.2010))
-
+normalize = torchvision.transforms.Normalize(mean=normalizedmean, std=normalizedstd)
 transform_train = torchvision.transforms.Compose([torchvision.transforms.RandomCrop(32, padding=4),
                                                   torchvision.transforms.RandomHorizontalFlip(),
                                                   torchvision.transforms.ToTensor(),
                                                   normalize])
-
 transform_test  = torchvision.transforms.Compose([torchvision.transforms.ToTensor(),normalize])
-
-
+# cifar 10
 trainset = torchvision.datasets.CIFAR10(root='./data', train=True, download=True, transform=transform_train)
 trainloader = torch.utils.data.DataLoader(trainset, batch_size=minibatch_size, shuffle=True)
-
+# cifar 10
 testset = torchvision.datasets.CIFAR10(root='./data', train=False, download=True, transform=transform_test)
 testloader = torch.utils.data.DataLoader(testset, batch_size=minibatch_size, shuffle=False)
 
 
+#additional model hyperparameter
+minstats = min(1000, len(trainloader))
+testfreq = min(100, len(trainloader)) #???
 
-optimizer = SASA(my_model.parameters(), lr=1.0, momentum=0.9, weight_decay=5e-4, testfreq=min(1000, len(trainloader)))
 
+#Step 4: Train the NNs
+# One epoch is when an entire dataset is passed through the neural network only once. 
+f = open("SASAplus_TestAllNet", 'w')
 
-lowCriteria_list = []
-highCriteria_list = []
-meanCriteria_list = []
-train_accuracy_list = []
-test_accuracy_list =[]
-lr_list = []
-avg_loss_list = []
-
-start = timer()
-for epoch in range(250):
-    # Reset accumulative running loss at beginning or each epoch
-    running_loss = 0
-    my_model.train()
-    for i, (images, labels) in enumerate(trainloader):
-        if use_cuda:
-          images = images.cuda()
-          labels = labels.cuda()
-
-        # Forward pass to get the loss
-        outputs = my_model(0,images)   # We need additional 0 input for u in MgNet
-        loss = criterion(outputs, labels)
-        # Backward and compute the gradient
-        optimizer.zero_grad()
-        loss.backward()  #backpropragation
-        running_loss += loss.item()
-        optimizer.step() #update the weights/parameters
-    avg_loss_list.append(running_loss)
-        
- # Training accuracy
-    my_model.eval()
-    correct = 0
-    total = 0
-    for i, (images, labels) in enumerate(trainloader):
-        with torch.no_grad():
-          if use_cuda:
-              images = images.cuda()
-              labels = labels.cuda()  
-          outputs = my_model(0,images) 
-          p_max, predicted = torch.max(outputs, 1) 
-          total += labels.size(0)
-          correct += (predicted == labels).sum()
-    training_accuracy = float(correct)/total
-    train_accuracy_list.append(training_accuracy)     
+for my_model in modeldic:
     
-    # Test accuracy
-    correct = 0
-    total = 0
-    for i, (images, labels) in enumerate(testloader):
-        with torch.no_grad():
-          if use_cuda:
+    test_accuracy_list = []
+    lr_list = []
+    avg_loss_list = []
+    max_test_accuarcy = 0
+    best_parameter = 0
+    peak_epoch = 0
+    
+    
+    if my_model == "preactresnet18" or my_model == "preactresnet34":
+        lr = 0.1
+    else:
+        lr = 0.1   #1
+    
+    optimizer = SASA(modeldic[my_model].parameters(), lr=lr, weight_decay=wd, momentum=momentum, testfreq=testfreq, drop_factor=dropfactor, 
+                     significance=significance, var_mode=varmode, minN_stats=minstats, leak_ratio=leakratio, warmup=warmup, logstats=logstats, qhm_nu=qhm_nu)
+  
+    total_parameter = sum(p.numel() for p in modeldic[my_model].parameters())
+    
+    start = timer()
+    for epoch in range(num_epochs):
+
+        running_loss = 0
+        modeldic[my_model].train()
+        for i, (images, labels) in enumerate(trainloader):
+            if use_cuda:
               images = images.cuda()
               labels = labels.cuda()
-          outputs = my_model(0,images)      # We need additional 0 input for u in MgNet
-          p_max, predicted = torch.max(outputs, 1) 
-          total += labels.size(0)
-          correct += (predicted == labels).sum()
-    test_accuracy = float(correct)/total
-    test_accuracy_list.append(test_accuracy)
-    current_lr = optimizer.state['lr']
-    lr_list.append(current_lr)
-    lowCriteria_list.append(optimizer.state['lowCriteria'])
-    highCriteria_list.append(optimizer.state['highCriteria'])
-    meanCriteria_list.append(optimizer.state['meanCriteria'])
-   
-end = timer()
-print("total computational time is", end - start)
+    
+            # Forward pass to get the loss
+            if my_model == "mgnet128" or my_model == "mgnet256":
+                outputs = modeldic[my_model](0,images)   # We need additional 0 input for u in MgNet
+            else:
+                outputs = modeldic[my_model](images) 
+            loss = criterion(outputs, labels)
+            # Backward and compute the gradient
+            optimizer.zero_grad()
+            loss.backward()  #backpropragation
+            running_loss += loss.item()
+            optimizer.step() #update the weights/parameters
+        
+      # Training accuracy
+        modeldic[my_model].eval()
+        correct = 0
+        total = 0
+        for i, (images, labels) in enumerate(trainloader):
+            with torch.no_grad():
+              if use_cuda:
+                  images = images.cuda()
+                  labels = labels.cuda()  
+              if my_model == "mgnet128" or my_model == "mgnet256":
+                  outputs = modeldic[my_model](0,images)   # We need additional 0 input for u in MgNet
+              else:
+                  outputs = modeldic[my_model](images) 
+              p_max, predicted = torch.max(outputs, 1) 
+              total += labels.size(0)
+              correct += (predicted == labels).sum()
+        training_accuracy = float(correct)/total
+        
+        # Test accuracy
+        correct = 0
+        total = 0
+        for i, (images, labels) in enumerate(testloader):
+            with torch.no_grad():
+              if use_cuda:
+                  images = images.cuda()
+                  labels = labels.cuda()
+              if my_model == "mgnet128" or my_model == "mgnet256":
+                  outputs = modeldic[my_model](0,images)   # We need additional 0 input for u in MgNet
+              else:
+                  outputs = modeldic[my_model](images) 
+              p_max, predicted = torch.max(outputs, 1) 
+              total += labels.size(0)
+              correct += (predicted == labels).sum()
+              
+        test_accuracy = float(correct)/total
+        current_lr = optimizer.state['lr']
+        
+        test_accuracy_list.append(test_accuracy)
+        lr_list.append(current_lr)
+        avg_loss_list.append(running_loss)
+        
+        # update parameter
+        if test_accuracy > max_test_accuarcy:
+            max_test_accuarcy = test_accuracy
+            best_parameter = modeldic[my_model].state_dict()
+            peak_epoch = epoch
+    
+    
+    end = timer()
+    time = end - start
+    
+    #save best model
+    filename = "sasaplus_"+ my_model +"_bestparam"
+    path = "best_model/{}.pt".format(filename)
+    torch.save(best_parameter, path)
+    
+    
+    '''
+    #load best model
+    device = torch.device("cuda")
+    model = ResNet(BasicBlock, [2,2,2,2], num_classes=num_classes)
+    model.load_state_dict(torch.load(path))
+    model.to(device)
+    '''
+    
+    
+    f.write("sasaplus_"+ my_model +"_testacculist = {}\n".format(test_accuracy_list))
+    f.write("sasaplus_"+ my_model +"_lrlist = np.log10(array({}))\n".format(lr_list))
+    f.write("sasaplus_"+ my_model +"_losslist = {}\n".format(avg_loss_list))
+    f.write("sasaplus_"+ my_model +"_time = {}\n".format(time))
+    f.write("sasaplus_"+ my_model +"_maxtestaccu = {}\n".format(max_test_accuarcy))
+    f.write("sasaplus_"+ my_model +"_peakepoch = {}\n".format(peak_epoch))
+    f.write("sasaplus_"+ my_model +"_totalparam = {}\n".format(total_parameter))
+    f.write("\n")
 
-file = open("SASAplus_2222MgNet256_minstat100_mb.txt","x")
-file.write("train_accuracy_list = {}\n".format(str(train_accuracy_list)))
-file.write("test_accuracy_list = {}\n".format(str(test_accuracy_list)))
-file.write("lr_list = {}\n".format(str(lr_list)))
-file.write("lowCriteria_list = {}\n".format(str(lowCriteria_list)))
-file.write("highCriteria_list = {}\n".format(str(highCriteria_list)))
-file.write("meanCriteria_list = {}\n".format(str(meanCriteria_list)))
-file.write("avg_loss_list = {}\n".format(str(avg_loss_list)))
-file.write("total_time = {}\n".format(str(end - start)))
-file.close()
-print("complete")
+
+f.close()
 
