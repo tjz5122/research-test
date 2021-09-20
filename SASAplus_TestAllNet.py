@@ -416,8 +416,8 @@ class SASA(QHM):
             loss = closure()
 
         self.add_weight_decay()
-        self.qhm_direction(dampening=0)
-        self.qhm_update(dampening = self.state['dampening'])
+        self.qhm_direction(dampening = self.state['dampening'])
+        self.qhm_update()
         self.state['nSteps'] += 1
         self.stats_adaptation()
 
