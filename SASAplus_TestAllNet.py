@@ -781,6 +781,7 @@ num_iteration = [2,2,2,2] # for each layer do 1 iteration or you can change to [
 minibatch_size = 128
 wd = 0.0005 
 momentum = 0.9     #0.6
+dampening = 0
 
 #model hyperparameter
 varmode = 'mb'
@@ -864,7 +865,7 @@ for my_model in modeldic:
     else:
         lr = 0.1   #1
     
-    optimizer = SASA(modeldic[my_model].parameters(), lr=lr, weight_decay=wd, momentum=momentum, testfreq=testfreq, drop_factor=dropfactor, 
+    optimizer = SASA(modeldic[my_model].parameters(), lr=lr, weight_decay=wd, momentum=momentum, dampening=dampening, testfreq=testfreq, drop_factor=dropfactor, 
                      significance=significance, var_mode=varmode, minN_stats=minstats, leak_ratio=leakratio, warmup=warmup, logstats=logstats, qhm_nu=qhm_nu)
   
     total_parameter = sum(p.numel() for p in modeldic[my_model].parameters())
