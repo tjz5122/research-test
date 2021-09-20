@@ -266,6 +266,7 @@ num_iteration = [2,2,2,2] # for each layer do 1 iteration or you can change to [
 minibatch_size = 128
 wd = 0.0005
 momentum = 0.9
+dampening = 0  #momentum
 decrease_rate = 50    #30 on MINIST; 50 on CIFAR10
 drop_factor = 10
  
@@ -348,7 +349,7 @@ for my_model in modeldic:
 
 
     
-    optimizer = optim.SGD(modeldic[my_model].parameters(), lr=lr, momentum=momentum, dampening=momentum, weight_decay=wd)
+    optimizer = optim.SGD(modeldic[my_model].parameters(), lr=lr, momentum=momentum, dampening=dampening, weight_decay=wd)
     
     total_parameter = sum(p.numel() for p in modeldic[my_model].parameters())
 
