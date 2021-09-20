@@ -81,7 +81,7 @@ class QHM(Optimizer):
                 if weight_decay > 0:
                     p.grad.data.add_(weight_decay, p.data)
 
-    def qhm_direction(self):
+    def qhm_direction(self, dampening=0):
 
         for group in self.param_groups:
             momentum = group['momentum']
@@ -103,7 +103,7 @@ class QHM(Optimizer):
                     else:
                         h = state['momentum_buffer']
                     # Update momentum buffer: h(k) = (1 - \beta) * g(k) + \beta * h(k-1)
-                    h.mul_(momentum).add_(1 - momentum, g)
+                    h.mul_(momentum).add_(1 - dampening, g)
 
                     if abs(qhm_nu - 1) < 1e-12:  # if nu=1, then same as SGD with momentum
                         d = state['step_buffer'] = h
@@ -347,7 +347,7 @@ class SASA(QHM):
         >>> optimizer.step()
     """
 
-    def __init__(self, params, lr=-1, momentum=0, qhm_nu=1, weight_decay=0, 
+    def __init__(self, params, lr=-1, momentum=0, dampening=0, qhm_nu=1, weight_decay=0, 
                  warmup=1000, drop_factor=10, significance=0.05, var_mode='mb',
                  leak_ratio=8, minN_stats=1000, testfreq=100, logstats=0):
 
@@ -391,7 +391,7 @@ class SASA(QHM):
         self.state['logstats'] = int(logstats)
         self.state['composite_test'] = True     # first drop use composite test
         self.state['nSteps'] = 0                # steps counter +1 every iteration
-
+        self.state['dampening'] = dampening
         # statistics to monitor
         self.state['stats_x1d'] = 0
         self.state['stats_ld2'] = 0
@@ -416,8 +416,8 @@ class SASA(QHM):
             loss = closure()
 
         self.add_weight_decay()
-        self.qhm_direction()
-        self.qhm_update()
+        self.qhm_direction(dampening=0)
+        self.qhm_update(dampening = self.state['dampening'])
         self.state['nSteps'] += 1
         self.stats_adaptation()
 
@@ -865,7 +865,7 @@ for my_model in modeldic:
     else:
         lr = 0.1   #1
     
-    optimizer = SASA(modeldic[my_model].parameters(), lr=lr, weight_decay=wd, momentum=momentum, dampening=dampening, testfreq=testfreq, drop_factor=dropfactor, 
+    optimizer = SASA(modeldic[my_model].parameters(), lr=lr, weight_decay=wd, momentum=momentum, dampening = dampening, testfreq=testfreq, drop_factor=dropfactor, 
                      significance=significance, var_mode=varmode, minN_stats=minstats, leak_ratio=leakratio, warmup=warmup, logstats=logstats, qhm_nu=qhm_nu)
   
     total_parameter = sum(p.numel() for p in modeldic[my_model].parameters())
