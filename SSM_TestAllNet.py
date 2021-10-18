@@ -592,8 +592,8 @@ dampening = 0
 #model hyperparameter
 keymode = 'loss with smooth'
 varmode = 'bm'
-leakratio = 12
-samplefreq = 15
+leakratio = 8   #12
+samplefreq = 10   #15
 significance = 0.05
 dropfactor = 10
 trun= 0.02
